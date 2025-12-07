@@ -310,13 +310,23 @@ async function exportMultipleQRPDF(selectedIds = []) {
                 const qrImg = new Image();
                 await new Promise((resolve) => {
                     qrImg.onload = () => {
-                        // Posición del QR en la plantilla (ajustar según tu plantilla)
-                        // Generalmente el QR va a la derecha
-                        const qrSize = Math.min(template.height * 0.75, 200);
-                        const qrX = template.width - qrSize - 30;
-                        const qrY = (template.height - qrSize) / 2;
+                        // Ajustar posición del QR - más cerca del logo (centro-derecha)
+                        const qrSize = Math.min(template.height * 0.65, 180);
+                        // Posicionar el QR al lado del logo, no tan a la derecha
+                        const qrX = template.width * 0.55;  // 55% desde la izquierda
+                        const qrY = (template.height - qrSize) / 2 - 15;
 
                         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+                        // Agregar nombre del bien debajo del QR
+                        ctx.fillStyle = '#000000';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+
+                        // Truncar nombre si es muy largo
+                        const nombreBien = (bien.Bien || bien.Nombre || codigo).substring(0, 25);
+                        ctx.fillText(nombreBien, qrX + qrSize / 2, qrY + qrSize + 20);
+
                         resolve();
                     };
                     qrImg.onerror = resolve;
