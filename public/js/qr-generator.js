@@ -1,54 +1,19 @@
 // ============================================
-// QR GENERATOR - Generación y Exportación de QR
+// QR GENERATOR - Generación de Códigos QR
+// Sistema de Inventario Institucional
 // ============================================
 
-// Helper para formatear fecha en formato corto
-function formatDateShort(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-}
-
 /**
- * Genera un código QR con información completa del bien
- * @param {Object} bienData - Datos del bien
+ * Genera un código QR simple con solo el código patrimonial
+ * @param {string} codigoPatrimonial - Código patrimonial del bien
  * @returns {Promise<string>} - Data URL del QR generado
  */
-async function generateQRCode(bienData) {
+async function generateQRSimple(codigoPatrimonial) {
     return new Promise((resolve, reject) => {
-        // Helper para truncar texto
-        const truncate = (text, maxLen) => {
-            if (!text || text === 'N/A') return text || 'N/A';
-            return text.length > maxLen ? text.substring(0, maxLen - 2) + '..' : text;
-        };
-
-        // Helper para extraer solo primer nombre y apellido
-        const extractShortName = (fullName) => {
-            if (!fullName || fullName === 'N/A') return 'N/A';
-            const parts = fullName.trim().split(/\s+/);
-            if (parts.length === 1) return truncate(parts[0], 15);
-            // Primer nombre + primer apellido
-            return truncate(`${parts[0]} ${parts[1] || ''}`.trim(), 15);
-        };
-
-        // Preparar datos en formato LEGIBLE con límites MÍNIMOS ABSOLUTOS
-        const lineas = [
-            `Cod Pat: ${truncate(bienData.CodigoPatrimonial || bienData.codigoPatrimonial, 15)}`,
-            `Nom: ${truncate(bienData.Bien || bienData.Nombre || bienData.nombre, 20)}`,
-            `Est: ${truncate(bienData.Estado || bienData.estado, 8)}`,
-            `Area: ${truncate(bienData.Area || bienData.area, 18)}`,
-            `Resp: ${extractShortName(bienData.Responsable || bienData.responsable)}`,
-            `Fech: ${formatDateShort(bienData.FechaAdquisicion || bienData.FechaRegistro)}`
-        ];
-
-        // Unir con saltos de línea
-        const qrText = lineas.join('\n');
-
-        console.log('📊 Tamaño del QR:', qrText.length, 'caracteres (máx: 864)');
-        console.log('📦 Contenido:\n' + qrText);
+        if (!codigoPatrimonial) {
+            reject(new Error('Código patrimonial requerido'));
+            return;
+        }
 
         // Crear elemento temporal para generar QR
         const tempDiv = document.createElement('div');
@@ -56,14 +21,14 @@ async function generateQRCode(bienData) {
         document.body.appendChild(tempDiv);
 
         try {
-            // Generar QR usando QRCode.js con nivel de corrección BAJO para mayor capacidad
-            const qr = new QRCode(tempDiv, {
-                text: qrText,
-                width: 400,
-                height: 400,
+            // Generar QR con solo el código patrimonial
+            new QRCode(tempDiv, {
+                text: codigoPatrimonial,
+                width: 256,
+                height: 256,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L  // Nivel BAJO necesario para máxima capacidad
+                correctLevel: QRCode.CorrectLevel.M
             });
 
             // Esperar a que se genere el QR
@@ -77,7 +42,7 @@ async function generateQRCode(bienData) {
                     document.body.removeChild(tempDiv);
                     reject(new Error('No se pudo generar el QR'));
                 }
-            }, 100);
+            }, 150);
         } catch (error) {
             document.body.removeChild(tempDiv);
             reject(error);
@@ -86,7 +51,29 @@ async function generateQRCode(bienData) {
 }
 
 /**
- * Exporta un QR individual como PNG con plantilla del IEST
+ * Genera previsualización del QR para mostrar en modal
+ * @param {Object} bienData - Datos del bien
+ * @returns {Promise<string>} - HTML del QR
+ */
+async function generateQRPreview(bienData) {
+    try {
+        const codigo = bienData.CodigoPatrimonial || bienData.codigoPatrimonial;
+        const qrDataURL = await generateQRSimple(codigo);
+
+        return `
+            <div class="qr-preview">
+                <img src="${qrDataURL}" alt="Código QR" class="qr-image">
+                <p class="qr-code-text"><strong>${codigo}</strong></p>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error al generar QR:', error);
+        return '<p class="error">Error al generar código QR</p>';
+    }
+}
+
+/**
+ * Exporta un QR individual como PNG con la plantilla del IEST
  * @param {number} idBien - ID del bien
  */
 async function exportSingleQRImage(idBien) {
@@ -95,11 +82,12 @@ async function exportSingleQRImage(idBien) {
 
         // Obtener datos del bien
         const bien = await api.getBien(idBien);
+        const codigo = bien.CodigoPatrimonial;
 
         // Generar QR
-        const qrDataURL = await generateQRCode(bien);
+        const qrDataURL = await generateQRSimple(codigo);
 
-        // Crear canvas para combinar plantilla + QR
+        // Crear canvas para combinar plantilla + QR + texto
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
@@ -107,25 +95,34 @@ async function exportSingleQRImage(idBien) {
         const template = new Image();
         template.crossOrigin = 'anonymous';
 
-        template.onload = () => {
-            // Establecer tamaño del canvas igual a la plantilla
+        template.onload = async () => {
+            // Establecer tamaño del canvas
             canvas.width = template.width;
             canvas.height = template.height;
 
             // Dibujar plantilla
             ctx.drawImage(template, 0, 0);
 
-            // Cargar QR
+            // Cargar y dibujar QR
             const qrImage = new Image();
             qrImage.onload = () => {
-                // Calcular posición del QR para el recuadro blanco derecho
-                // Ajustado para mejor centrado en la plantilla
-                const qrSize = Math.min(250, canvas.height * 0.7); // Tamaño adaptativo
-                const qrX = canvas.width - qrSize - 50; // Margen derecho de 50px
-                const qrY = (canvas.height - qrSize) / 2; // Centrado verticalmente
+                // Posicionar QR en el lado derecho de la plantilla
+                const qrSize = Math.min(220, canvas.height * 0.65);
+                const qrX = canvas.width - qrSize - 40;
+                const qrY = (canvas.height - qrSize) / 2 - 10;
 
-                // Dibujar QR sobre la plantilla
+                // Dibujar fondo blanco para el QR
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 40);
+
+                // Dibujar QR
                 ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+                // Agregar código debajo del QR
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(codigo, qrX + qrSize / 2, qrY + qrSize + 20);
 
                 // Descargar imagen
                 canvas.toBlob((blob) => {
@@ -136,7 +133,7 @@ async function exportSingleQRImage(idBien) {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `QR_${bien.CodigoPatrimonial}.png`;
+                    a.download = `QR_${codigo}.png`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -147,14 +144,15 @@ async function exportSingleQRImage(idBien) {
             };
 
             qrImage.onerror = () => {
-                showToast('Error al cargar el código QR', 'error');
+                showToast('Error al procesar código QR', 'error');
             };
 
             qrImage.src = qrDataURL;
         };
 
         template.onerror = () => {
-            showToast('Error al cargar la plantilla. Verifica que existe /assets/qr-template.png', 'error');
+            // Si no hay plantilla, descargar solo el QR
+            downloadQRWithoutTemplate(qrDataURL, codigo);
         };
 
         template.src = '/assets/qr-template.png';
@@ -166,14 +164,61 @@ async function exportSingleQRImage(idBien) {
 }
 
 /**
- * Exporta múltiples QRs como PDF (10 por página, 2x5)
- * @param {Array<number>} selectedIds - IDs de bienes seleccionados
+ * Descarga el QR sin plantilla (fallback)
+ */
+function downloadQRWithoutTemplate(qrDataURL, codigo) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 300;
+    canvas.height = 350;
+
+    // Fondo blanco
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const qrImage = new Image();
+    qrImage.onload = () => {
+        // Dibujar QR centrado
+        ctx.drawImage(qrImage, 22, 20, 256, 256);
+
+        // Agregar código
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(codigo, 150, 310);
+
+        // Agregar texto IEST
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#666666';
+        ctx.fillText('IEST Coracora - Inventario', 150, 335);
+
+        // Descargar
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `QR_${codigo}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('QR descargado exitosamente', 'success');
+        }, 'image/png');
+    };
+
+    qrImage.src = qrDataURL;
+}
+
+/**
+ * Exporta múltiples QRs como PDF (10 etiquetas por página)
+ * @param {Array<number>} selectedIds - IDs de bienes seleccionados (vacío = todos)
  */
 async function exportMultipleQRPDF(selectedIds = []) {
     try {
-        showToast('Generando PDF con QRs...', 'info');
+        showToast('Preparando PDF...', 'info');
 
-        // Si no hay selección, obtener todos los bienes
+        // Obtener bienes
         let bienes;
         if (selectedIds.length === 0) {
             bienes = await api.getBienes();
@@ -186,7 +231,12 @@ async function exportMultipleQRPDF(selectedIds = []) {
             return;
         }
 
-        // Crear PDF
+        // Verificar que jsPDF esté disponible
+        if (!window.jspdf) {
+            showToast('Error: Librería jsPDF no disponible', 'error');
+            return;
+        }
+
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
             orientation: 'portrait',
@@ -194,123 +244,113 @@ async function exportMultipleQRPDF(selectedIds = []) {
             format: 'a4'
         });
 
-        // Cargar plantilla
-        const template = new Image();
-        template.crossOrigin = 'anonymous';
+        // Configuración: 2 columnas x 5 filas = 10 QRs por página
+        const config = {
+            marginX: 15,
+            marginY: 15,
+            cols: 2,
+            rows: 5,
+            qrWidth: 85,
+            qrHeight: 52,
+            spacingX: 10,
+            spacingY: 4
+        };
 
-        await new Promise((resolve, reject) => {
-            template.onload = resolve;
-            template.onerror = () => reject(new Error('No se pudo cargar la plantilla'));
-            template.src = '/assets/qr-template.png';
-        });
+        const qrsPerPage = config.cols * config.rows;
 
-        // Configuración del layout (2 columnas x 5 filas = 10 QRs por página)
-        const qrsPerPage = 10;
-        const cols = 2;
-        const rows = 5;
-        const marginX = 10;
-        const marginY = 10;
-        const qrWidth = 90;
-        const qrHeight = 55;
-        const spacingX = 10;
-        const spacingY = 5;
-
-        // Procesar bienes en lotes de 10
         for (let i = 0; i < bienes.length; i++) {
             const bien = bienes[i];
-            const pageIndex = Math.floor(i / qrsPerPage);
-            const positionInPage = i % qrsPerPage;
-            const col = positionInPage % cols;
-            const row = Math.floor(positionInPage / cols);
+            const codigo = bien.CodigoPatrimonial;
 
-            // Mostrar progreso
+            // Mostrar progreso cada 5 bienes
             if (i % 5 === 0) {
-                showToast(`Procesando QR ${i + 1} de ${bienes.length}...`, 'info');
+                showToast(`Procesando ${i + 1} de ${bienes.length}...`, 'info');
             }
 
-            // Agregar nueva página si es necesario
-            if (i > 0 && positionInPage === 0) {
+            // Nueva página si es necesario
+            if (i > 0 && i % qrsPerPage === 0) {
                 pdf.addPage();
             }
 
-            // Generar QR para este bien
-            const qrDataURL = await generateQRCode(bien);
-
             // Calcular posición
-            const x = marginX + col * (qrWidth + spacingX);
-            const y = marginY + row * (qrHeight + spacingY);
+            const posInPage = i % qrsPerPage;
+            const col = posInPage % config.cols;
+            const row = Math.floor(posInPage / config.cols);
+            const x = config.marginX + col * (config.qrWidth + config.spacingX);
+            const y = config.marginY + row * (config.qrHeight + config.spacingY);
 
-            // Crear canvas temporal para combinar plantilla + QR
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = template.width;
-            canvas.height = template.height;
+            try {
+                // Generar QR
+                const qrDataURL = await generateQRSimple(codigo);
 
-            // Dibujar plantilla
-            ctx.drawImage(template, 0, 0);
+                // Crear etiqueta en canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 340;
+                canvas.height = 210;
 
-            // Dibujar QR
-            const qrImage = new Image();
-            await new Promise((resolve) => {
-                qrImage.onload = () => {
-                    // Posicionamiento optimizado del QR en la plantilla
-                    const qrSize = Math.min(250, canvas.height * 0.7);
-                    const qrX = canvas.width - qrSize - 50; // Margen derecho
-                    const qrY = (canvas.height - qrSize) / 2; // Centrado vertical
-                    ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
-                    resolve();
-                };
-                qrImage.onerror = () => {
-                    console.error('Error al cargar QR para bien:', bien.CodigoPatrimonial);
-                    resolve(); // Continuar aunque falle uno
-                };
-                qrImage.src = qrDataURL;
-            });
+                // Fondo con borde
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#cccccc';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 
-            // Agregar al PDF
-            const imgData = canvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', x, y, qrWidth, qrHeight);
+                // Texto IEST
+                ctx.fillStyle = '#1a1a2e';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('IEST CORACORA', 15, 25);
+
+                // Código patrimonial grande
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(`Código: ${codigo}`, 15, 50);
+
+                // Nombre del bien (truncado)
+                ctx.font = '11px Arial';
+                ctx.fillStyle = '#333333';
+                const nombre = (bien.Bien || bien.Nombre || '').substring(0, 25);
+                ctx.fillText(nombre, 15, 70);
+
+                // Área
+                ctx.font = '10px Arial';
+                ctx.fillStyle = '#666666';
+                const area = (bien.Area || 'Sin área').substring(0, 20);
+                ctx.fillText(`Área: ${area}`, 15, 90);
+
+                // Responsable
+                const resp = (bien.Responsable || 'Sin asignar').substring(0, 20);
+                ctx.fillText(`Resp: ${resp}`, 15, 110);
+
+                // Dibujar QR
+                const qrImg = new Image();
+                await new Promise((resolve) => {
+                    qrImg.onload = () => {
+                        ctx.drawImage(qrImg, 195, 25, 130, 130);
+                        resolve();
+                    };
+                    qrImg.onerror = resolve;
+                    qrImg.src = qrDataURL;
+                });
+
+                // Agregar al PDF
+                const imgData = canvas.toDataURL('image/png');
+                pdf.addImage(imgData, 'PNG', x, y, config.qrWidth, config.qrHeight);
+
+            } catch (err) {
+                console.error(`Error con bien ${codigo}:`, err);
+            }
         }
 
         // Descargar PDF
-        const filename = `QRs_Bienes_${new Date().toISOString().split('T')[0]}.pdf`;
-        pdf.save(filename);
+        const fecha = new Date().toISOString().split('T')[0];
+        pdf.save(`QRs_Inventario_${fecha}.pdf`);
 
         const totalPages = Math.ceil(bienes.length / qrsPerPage);
         showToast(`✅ PDF generado: ${bienes.length} QR(s) en ${totalPages} página(s)`, 'success');
 
     } catch (error) {
-        console.error('Error al exportar PDF:', error);
-        showToast('Error al exportar PDF: ' + error.message, 'error');
+        console.error('Error al generar PDF:', error);
+        showToast('Error al generar PDF: ' + error.message, 'error');
     }
 }
-
-/**
- * Muestra previsualización del QR en un modal
- * @param {Object} bienData - Datos del bien
- * @returns {Promise<string>} - HTML del QR para mostrar
- */
-async function generateQRPreview(bienData) {
-    try {
-        const qrDataURL = await generateQRCode(bienData);
-        return `
-            <div class="qr-preview">
-                <img src="${qrDataURL}" alt="Código QR" class="qr-image">
-                <div class="qr-info">
-                    <p><strong>Código:</strong> ${bienData.CodigoPatrimonial || bienData.codigoPatrimonial}</p>
-                    <p><strong>Bien:</strong> ${bienData.Bien || bienData.Nombre || bienData.nombre}</p>
-                    <p><strong>Categoría:</strong> ${bienData.Categoria || bienData.categoria || '-'}</p>
-                    <p><strong>Estado:</strong> ${bienData.Estado || bienData.estado || '-'}</p>
-                    <p><strong>Área:</strong> ${bienData.Area || bienData.area || '-'}</p>
-                    <p><strong>Responsable:</strong> ${bienData.Responsable || bienData.responsable || 'Sin asignar'}</p>
-                    ${(bienData.Marca || bienData.marca) ? `<p><strong>Marca:</strong> ${bienData.Marca || bienData.marca}</p>` : ''}
-                    ${(bienData.Modelo || bienData.modelo) ? `<p><strong>Modelo:</strong> ${bienData.Modelo || bienData.modelo}</p>` : ''}
-                </div>
-            </div>
-        `;
-    } catch (error) {
-        console.error('Error al generar previsualización:', error);
-        return '<p class="error">Error al generar QR. Verifica que todos los datos del bien estén completos.</p>';
-    }
-}
-
