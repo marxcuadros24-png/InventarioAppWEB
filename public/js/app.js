@@ -1282,7 +1282,7 @@ class App {
 
             // Llenar Métodos de Adquisición
             const metodos = catalogos.metodosAdquisicion || [];
-            const selectMetodo = document.getElementById('idMetodoAdquisicion');
+            const selectMetodo = document.getElementById('idMetodo');
             if (selectMetodo) {
                 metodos.forEach(metodo => {
                     const option = document.createElement('option');
