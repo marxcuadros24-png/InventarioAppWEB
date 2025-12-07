@@ -319,10 +319,8 @@ async function exportMultipleQRPDF(selectedIds = []) {
                         // Plantilla: 600px x 300px
                         // QR centrado en la mitad derecha (300-600px)
                         const qrSize = 160;
-                        // Centrar QR en la mitad derecha: 300 + (300/2) - (qrSize/2) = 370
-                        const qrX = 370;
-                        // Centrar verticalmente con espacio para nombre: (300 - qrSize - 30) / 2 = 55
-                        const qrY = 45;
+                        const qrX = 365;     // 5px más a la izquierda
+                        const qrY = 60;      // 15px más abajo
 
                         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
