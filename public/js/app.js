@@ -1402,8 +1402,8 @@ class App {
             const formData = new FormData(form);
             const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-            // Validar usuario logueado
-            if (!usuario || !usuario.IdUsuario) {
+            // Validar usuario logueado (el backend usa 'idUsuario' en camelCase)
+            if (!usuario || !usuario.idUsuario) {
                 showToast('Debe iniciar sesión para registrar movimientos', 'error');
                 return;
             }
@@ -1412,7 +1412,7 @@ class App {
                 idBien: parseInt(formData.get('idBien')),
                 idTipoMovimiento: parseInt(formData.get('idTipoMovimiento')),
                 descripcion: formData.get('descripcion')?.trim() || null,
-                idUsuario: usuario.IdUsuario
+                idUsuario: usuario.idUsuario
             };
 
             if (!data.idBien) {
