@@ -1400,7 +1400,7 @@ class App {
         try {
             const form = document.getElementById('movimiento-form');
             const formData = new FormData(form);
-            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            const usuario = JSON.parse(sessionStorage.getItem('usuario'));
 
             // Validar usuario logueado (el backend usa 'idUsuario' en camelCase)
             if (!usuario || !usuario.idUsuario) {

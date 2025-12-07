@@ -6,7 +6,8 @@ const API_BASE_URL = 'http://localhost:3000/api';
 
 class API {
     constructor() {
-        this.token = localStorage.getItem('token');
+        // Usar sessionStorage para que la sesión expire al cerrar el navegador
+        this.token = sessionStorage.getItem('token');
     }
 
     // Headers con autenticación
@@ -50,8 +51,8 @@ class API {
         });
 
         this.token = data.token;
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('usuario', JSON.stringify(data.usuario));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
 
         return data;
     }
@@ -62,8 +63,8 @@ class API {
 
     logout() {
         this.token = null;
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('usuario');
     }
 
     // === CATÁLOGOS ===

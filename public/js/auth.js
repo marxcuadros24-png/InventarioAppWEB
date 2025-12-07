@@ -5,7 +5,7 @@
 class AuthManager {
     constructor() {
         this.currentUser = null;
-        this.token = localStorage.getItem('token');
+        this.token = sessionStorage.getItem('token');
     }
 
     // Verificar si hay sesión activa
@@ -15,7 +15,7 @@ class AuthManager {
 
     // Obtener usuario actual
     getCurrentUser() {
-        const userData = localStorage.getItem('usuario');
+        const userData = sessionStorage.getItem('usuario');
         return userData ? JSON.parse(userData) : null;
     }
 
