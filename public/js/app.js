@@ -202,13 +202,13 @@ const views = {
             return `
                 <div class="card">
                     <div class="card-header flex-between">
-                        <h2 class="card-title">📦 Gestión de Bienes</h2>
+                        <h2 class="card-title">Gestión de Bienes</h2>
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-secondary" id="export-selected-btn" onclick="app.exportSelectedQRs()" style="display: none;">
-                                📄 Exportar QRs Seleccionados
+                                Exportar QRs
                             </button>
                             <button class="btn btn-primary" onclick="app.showBienForm()">
-                                ➕ Nuevo Bien
+                                + Nuevo Bien
                             </button>
                         </div>
                     </div>
@@ -243,9 +243,9 @@ const views = {
                                         <td>${bien.Area}</td>
                                         <td>${bien.Responsable || '-'}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-secondary" onclick="app.viewBien(${bien.IdBien})">👁️</button>
-                                            <button class="btn btn-sm btn-secondary" onclick="app.editBien(${bien.IdBien})">✏️</button>
-                                            <button class="btn btn-sm btn-danger" onclick="app.deleteBien(${bien.IdBien})">🗑️</button>
+                                            <button class="btn btn-sm btn-secondary" onclick="app.viewBien(${bien.IdBien})">Ver</button>
+                                            <button class="btn btn-sm btn-secondary" onclick="app.editBien(${bien.IdBien})">Editar</button>
+                                            <button class="btn btn-sm btn-danger" onclick="app.deleteBien(${bien.IdBien})">Eliminar</button>
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -1212,6 +1212,116 @@ class App {
         }
     }
 
+    // Cargar catálogos en formulario de bienes
+    async loadFormCatalogos() {
+        try {
+            // Obtener catálogos y responsables
+            const [catalogos, responsables] = await Promise.all([
+                this.catalogos || api.getCatalogos(),
+                api.getResponsables()
+            ]);
+
+            // Llenar Tipos de Bien
+            const tiposBien = catalogos.tipoBien || [];
+            const selectTipoBien = document.getElementById('idTipoBien');
+            if (selectTipoBien) {
+                tiposBien.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo.IdTipoBien;
+                    option.textContent = tipo.Nombre;
+                    selectTipoBien.appendChild(option);
+                });
+            }
+
+            // Llenar Marcas
+            const marcas = catalogos.marcas || [];
+            const selectMarca = document.getElementById('idMarca');
+            if (selectMarca) {
+                marcas.forEach(marca => {
+                    const option = document.createElement('option');
+                    option.value = marca.IdMarca;
+                    option.textContent = marca.Nombre;
+                    selectMarca.appendChild(option);
+                });
+            }
+
+            // Llenar Estados
+            const estados = catalogos.estados || [];
+            const selectEstado = document.getElementById('idEstado');
+            if (selectEstado) {
+                estados.forEach(estado => {
+                    const option = document.createElement('option');
+                    option.value = estado.IdEstado;
+                    option.textContent = estado.Nombre;
+                    selectEstado.appendChild(option);
+                });
+            }
+
+            // Llenar Áreas
+            const areas = catalogos.areas || [];
+            const selectArea = document.getElementById('idArea');
+            if (selectArea) {
+                areas.forEach(area => {
+                    const option = document.createElement('option');
+                    option.value = area.IdArea;
+                    option.textContent = area.Nombre;
+                    selectArea.appendChild(option);
+                });
+            }
+
+            // Llenar Responsables
+            const selectResponsable = document.getElementById('idResponsable');
+            if (selectResponsable) {
+                responsables.forEach(resp => {
+                    const option = document.createElement('option');
+                    option.value = resp.IdResponsable;
+                    option.textContent = resp.NombreCompleto || `${resp.Nombres} ${resp.Apellidos}`;
+                    selectResponsable.appendChild(option);
+                });
+            }
+
+            // Llenar Métodos de Adquisición
+            const metodos = catalogos.metodosAdquisicion || [];
+            const selectMetodo = document.getElementById('idMetodoAdquisicion');
+            if (selectMetodo) {
+                metodos.forEach(metodo => {
+                    const option = document.createElement('option');
+                    option.value = metodo.IdMetodo;
+                    option.textContent = metodo.Nombre;
+                    selectMetodo.appendChild(option);
+                });
+            }
+
+            // Guardar categorías para filtrar después
+            this.categorias = catalogos.categorias || [];
+
+        } catch (error) {
+            console.error('Error al cargar catálogos del formulario:', error);
+            showToast('Error al cargar opciones del formulario', 'error');
+        }
+    }
+
+    // Filtrar categorías por tipo de bien
+    filterCategoriasByTipo(idTipoBien) {
+        const selectCategoria = document.getElementById('idCategoria');
+        if (!selectCategoria) return;
+
+        selectCategoria.innerHTML = '<option value="">Seleccione...</option>';
+
+        if (!idTipoBien || !this.categorias) return;
+
+        const categoriasFiltradas = this.categorias.filter(
+            cat => cat.IdTipoBien == idTipoBien
+        );
+
+        categoriasFiltradas.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.IdCategoria;
+            option.textContent = cat.Nombre;
+            selectCategoria.appendChild(option);
+        });
+    }
+
     // Métodos de formularios
     async showBienForm(idBien = null) {
         const isEdit = idBien !== null;
@@ -1243,7 +1353,7 @@ class App {
                     <form id="bien-form" class="modal-body">
                         <!-- Datos Básicos -->
                         <div class="form-section">
-                            <h3 class="form-section-title">📋 Datos Básicos</h3>
+                            <h3 class="form-section-title">Datos Básicos</h3>
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="codigoPatrimonial">Código Patrimonial *</label>
@@ -1303,7 +1413,7 @@ class App {
 
                         <!-- Adquisición -->
                         <div class="form-section">
-                            <h3 class="form-section-title">💰 Datos de Adquisición</h3>
+                            <h3 class="form-section-title">Datos de Adquisición</h3>
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="fechaAdquisicion">Fecha de Adquisición *</label>
@@ -1328,7 +1438,7 @@ class App {
 
                         <!-- Especificaciones Técnicas -->
                         <div class="form-section">
-                            <h3 class="form-section-title">🔧 Especificaciones Técnicas (Opcional)</h3>
+                            <h3 class="form-section-title">Especificaciones Técnicas (Opcional)</h3>
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="procesador">Procesador</label>
@@ -1363,7 +1473,7 @@ class App {
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" onclick="app.closeModal()">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">💾 Guardar Bien</button>
+                            <button type="submit" class="btn btn-primary">Guardar Bien</button>
                         </div>
                     </form>
                 </div>
