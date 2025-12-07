@@ -1431,6 +1431,11 @@ class App {
             showToast('Movimiento registrado exitosamente', 'success');
 
             this.closeModal();
+
+            // Pequeño delay para asegurar que el servidor procesó el movimiento
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Forzar recarga de la vista
             await this.loadView('movimientos');
 
         } catch (error) {
