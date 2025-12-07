@@ -146,9 +146,11 @@ async function exportSingleQRImage(idBien) {
                 ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
                 ctx.fillStyle = '#000000';
-                ctx.font = 'bold 16px Arial';
+                ctx.font = 'bold 14px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(codigo, qrX + qrSize / 2, qrY + qrSize + 20);
+                // Mostrar nombre del bien (truncado si es muy largo)
+                const nombreBien = (bien.Bien || bien.Nombre || codigo).substring(0, 28);
+                ctx.fillText(nombreBien, qrX + qrSize / 2, qrY + qrSize + 20);
 
                 canvas.toBlob((blob) => {
                     if (!blob) {
