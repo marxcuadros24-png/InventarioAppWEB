@@ -499,4 +499,76 @@ router.delete('/metodos/:id', async (req, res) => {
     }
 });
 
+// ========================
+// TIPOS DE MOVIMIENTO
+// ========================
+router.get('/tipos-movimiento', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        const result = await pool.request().query('SELECT * FROM TipoMovimiento ORDER BY NombreMovimiento');
+        res.json(result.recordset);
+    } catch (err) {
+        console.error('Error al obtener tipos de movimiento:', err);
+        res.status(500).json({ error: 'Error al obtener tipos de movimiento' });
+    }
+});
+
+router.post('/tipos-movimiento', async (req, res) => {
+    try {
+        const { nombreMovimiento, descripcion } = req.body;
+        if (!nombreMovimiento || nombreMovimiento.trim() === '') {
+            return res.status(400).json({ error: 'El nombre es requerido' });
+        }
+        const pool = await getConnection();
+        const result = await pool.request()
+            .input('nombre', sql.NVarChar(100), nombreMovimiento.trim())
+            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
+            .query('INSERT INTO TipoMovimiento (NombreMovimiento, Descripcion) OUTPUT INSERTED.IdTipoMovimiento, INSERTED.NombreMovimiento, INSERTED.Descripcion VALUES (@nombre, @descripcion)');
+        res.json(result.recordset[0]);
+    } catch (err) {
+        console.error('Error al crear tipo de movimiento:', err);
+        res.status(500).json({ error: 'Error al crear tipo de movimiento' });
+    }
+});
+
+router.put('/tipos-movimiento/:id', async (req, res) => {
+    try {
+        const { nombreMovimiento, descripcion } = req.body;
+        if (!nombreMovimiento || nombreMovimiento.trim() === '') {
+            return res.status(400).json({ error: 'El nombre es requerido' });
+        }
+        const pool = await getConnection();
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .input('nombre', sql.NVarChar(100), nombreMovimiento.trim())
+            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
+            .query('UPDATE TipoMovimiento SET NombreMovimiento = @nombre, Descripcion = @descripcion WHERE IdTipoMovimiento = @id');
+        res.json({ message: 'Tipo de movimiento actualizado exitosamente' });
+    } catch (err) {
+        console.error('Error al actualizar tipo de movimiento:', err);
+        res.status(500).json({ error: 'Error al actualizar tipo de movimiento' });
+    }
+});
+
+router.delete('/tipos-movimiento/:id', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        const check = await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .query('SELECT COUNT(*) as count FROM Movimiento WHERE IdTipoMovimiento = @id');
+
+        if (check.recordset[0].count > 0) {
+            return res.status(400).json({ error: 'No se puede eliminar el tipo de movimiento porque tiene movimientos asociados' });
+        }
+
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .query('DELETE FROM TipoMovimiento WHERE IdTipoMovimiento = @id');
+        res.json({ message: 'Tipo de movimiento eliminado exitosamente' });
+    } catch (err) {
+        console.error('Error al eliminar tipo de movimiento:', err);
+        res.status(500).json({ error: 'Error al eliminar tipo de movimiento' });
+    }
+});
+
 module.exports = router;

@@ -479,3 +479,28 @@
     gap: var(--spacing-md);
     border-top: none;
 }
+
+/* === ESTILOS PARA MOVIMIENTOS === */
+.badge-movimiento {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.header-title-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.badge-count {
+    background: rgba(var(--primary-rgb), 0.15);
+    color: var(--primary-light);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}

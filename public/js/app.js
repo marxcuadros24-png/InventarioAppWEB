@@ -350,41 +350,67 @@ const views = {
                 () => localDB.getAll('movimientos')
             );
 
+            const emptyState = movimientos.length === 0 ? `
+                <div class="empty-state">
+                    <h3>No hay movimientos registrados</h3>
+                    <p>Los movimientos se registran cuando hay cambios en los bienes</p>
+                    <button class="btn btn-primary" onclick="app.showMovimientoForm()">
+                        + Registrar Primer Movimiento
+                    </button>
+                </div>
+            ` : '';
+
+            const tableContent = movimientos.length > 0 ? `
+                <div class="table-container">
+                    <table id="movimientos-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Código Patrimonial</th>
+                                <th>Bien</th>
+                                <th>Tipo Movimiento</th>
+                                <th>Usuario</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${movimientos.map(mov => `
+                                <tr>
+                                    <td>${formatDate(mov.FechaMovimiento)}</td>
+                                    <td><strong>${mov.CodigoPatrimonial}</strong></td>
+                                    <td>${mov.BienNombre}</td>
+                                    <td><span class="badge badge-movimiento">${mov.NombreMovimiento}</span></td>
+                                    <td>${mov.NombreUsuario}</td>
+                                    <td>${mov.Descripcion || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '';
+
             return `
                 <div class="card">
                     <div class="card-header flex-between">
-                        <h2 class="card-title">🔄 Historial de Movimientos</h2>
+                        <div class="header-title-group">
+                            <h2 class="card-title">Historial de Movimientos</h2>
+                            <span class="badge badge-count">${movimientos.length} registro${movimientos.length !== 1 ? 's' : ''}</span>
+                        </div>
                         <button class="btn btn-primary" onclick="app.showMovimientoForm()">
-                            ➕ Registrar Movimiento
+                            + Registrar Movimiento
                         </button>
                     </div>
 
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Código Patrimonial</th>
-                                    <th>Bien</th>
-                                    <th>Tipo Movimiento</th>
-                                    <th>Usuario</th>
-                                    <th>Descripción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${movimientos.map(mov => `
-                                    <tr>
-                                        <td>${formatDate(mov.FechaMovimiento)}</td>
-                                        <td><strong>${mov.CodigoPatrimonial}</strong></td>
-                                        <td>${mov.BienNombre}</td>
-                                        <td>${mov.NombreMovimiento}</td>
-                                        <td>${mov.NombreUsuario}</td>
-                                        <td>${mov.Descripcion || '-'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                    ${movimientos.length > 0 ? `
+                    <div class="search-bar">
+                        <input type="text" id="search-movimientos" 
+                               placeholder="Buscar por código, bien, tipo..." 
+                               oninput="app.filterMovimientos(this.value)">
                     </div>
+                    ` : ''}
+
+                    ${emptyState}
+                    ${tableContent}
                 </div>
             `;
         } catch (error) {
@@ -465,7 +491,10 @@ const views = {
                             🏢 Áreas
                         </button>
                         <button class="catalog-tab" data-catalog="metodos" onclick="app.switchCatalogTab('metodos')">
-                            💳 Métodos de Adquisición
+                            Métodos de Adquisición
+                        </button>
+                        <button class="catalog-tab" data-catalog="tiposMovimiento" onclick="app.switchCatalogTab('tiposMovimiento')">
+                            Tipos de Movimiento
                         </button>
                     </div>
 
@@ -671,6 +700,41 @@ const views = {
                                             <td>
                                                 <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('metodo', ${item.IdMetodo}, '${item.NombreMetodo.replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">✏️</button>
                                                 <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('metodo', ${item.IdMetodo})">🗑️</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Panel Tipos de Movimiento -->
+                    <div class="catalog-panel" id="panel-tiposMovimiento">
+                        <div class="panel-header">
+                            <h3>Tipos de Movimiento</h3>
+                            <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('tipoMovimiento')">
+                                + Nuevo Tipo
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${(catalogos.tiposMovimiento || []).map(item => `
+                                        <tr>
+                                            <td>${item.IdTipoMovimiento}</td>
+                                            <td><strong>${item.NombreMovimiento}</strong></td>
+                                            <td>${item.Descripcion || '-'}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('tipoMovimiento', ${item.IdTipoMovimiento}, '${item.NombreMovimiento.replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('tipoMovimiento', ${item.IdTipoMovimiento})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -1259,8 +1323,124 @@ class App {
         }
     }
 
-    showMovimientoForm() {
-        showToast('Formulario de movimiento - Por implementar', 'info');
+    async showMovimientoForm() {
+        try {
+            // Obtener bienes y tipos de movimiento
+            const [bienes, catalogos] = await Promise.all([
+                api.getBienes(),
+                api.getCatalogos()
+            ]);
+
+            const tiposMovimiento = catalogos.tiposMovimiento || [];
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+            const modalHTML = `
+                <div class="modal-overlay" id="movimiento-modal">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <h2>Registrar Movimiento</h2>
+                            <button class="modal-close" onclick="app.closeModal()">&times;</button>
+                        </div>
+                        <form id="movimiento-form" class="modal-body">
+                            <div class="form-section">
+                                <h3 class="form-section-title">Datos del Movimiento</h3>
+                                <div class="form-grid">
+                                    <div class="form-group form-group-full">
+                                        <label for="mov-bien">Bien *</label>
+                                        <select id="mov-bien" name="idBien" required>
+                                            <option value="">Seleccione un bien...</option>
+                                            ${bienes.map(bien => `
+                                                <option value="${bien.IdBien}">
+                                                    ${bien.CodigoPatrimonial} - ${bien.Bien}
+                                                </option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="form-group form-group-full">
+                                        <label for="mov-tipo">Tipo de Movimiento *</label>
+                                        <select id="mov-tipo" name="idTipoMovimiento" required>
+                                            <option value="">Seleccione un tipo...</option>
+                                            ${tiposMovimiento.map(tipo => `
+                                                <option value="${tipo.IdTipoMovimiento}">
+                                                    ${tipo.NombreMovimiento}
+                                                </option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="form-group form-group-full">
+                                        <label for="mov-descripcion">Descripción</label>
+                                        <textarea id="mov-descripcion" name="descripcion" rows="3" 
+                                                  placeholder="Describa el motivo del movimiento..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="app.closeModal()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Registrar Movimiento</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-container').innerHTML = modalHTML;
+
+            // Configurar evento de envío
+            document.getElementById('movimiento-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitMovimientoForm();
+            });
+
+        } catch (error) {
+            console.error('Error al cargar formulario de movimiento:', error);
+            showToast('Error al cargar el formulario', 'error');
+        }
+    }
+
+    async submitMovimientoForm() {
+        try {
+            const form = document.getElementById('movimiento-form');
+            const formData = new FormData(form);
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+            const data = {
+                idBien: parseInt(formData.get('idBien')),
+                idTipoMovimiento: parseInt(formData.get('idTipoMovimiento')),
+                descripcion: formData.get('descripcion')?.trim() || null,
+                idUsuario: usuario?.IdUsuario || 1
+            };
+
+            if (!data.idBien) {
+                showToast('Debe seleccionar un bien', 'warning');
+                return;
+            }
+
+            if (!data.idTipoMovimiento) {
+                showToast('Debe seleccionar un tipo de movimiento', 'warning');
+                return;
+            }
+
+            showToast('Registrando movimiento...', 'info');
+
+            await api.createMovimiento(data);
+            showToast('Movimiento registrado exitosamente', 'success');
+
+            this.closeModal();
+            await this.loadView('movimientos');
+
+        } catch (error) {
+            console.error('Error al registrar movimiento:', error);
+            showToast('Error al registrar movimiento: ' + error.message, 'error');
+        }
+    }
+
+    filterMovimientos(searchTerm) {
+        const rows = document.querySelectorAll('#movimientos-table tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
+        });
     }
 
     async viewBien(id) {
@@ -1444,6 +1624,10 @@ class App {
         });
     }
 
+    closeModal() {
+        document.getElementById('modal-container').innerHTML = '';
+    }
+
     filterResponsables(searchTerm) {
         const rows = document.querySelectorAll('#responsables-table tbody tr');
         rows.forEach(row => {
@@ -1561,6 +1745,20 @@ class App {
                 `;
                 break;
 
+            case 'tipoMovimiento':
+                title = isEdit ? 'Editar Tipo de Movimiento' : 'Nuevo Tipo de Movimiento';
+                formContent = `
+                    <div class="form-group">
+                        <label for="catalog-nombre">Nombre *</label>
+                        <input type="text" id="catalog-nombre" name="nombreMovimiento" value="${editData?.nombre || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="catalog-descripcion">Descripción</label>
+                        <textarea id="catalog-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
+                    </div>
+                `;
+                break;
+
             default:
                 return;
         }
@@ -1616,6 +1814,10 @@ class App {
                 editData.ubicacion = args[1] || '';
                 editData.descripcion = args[2] || '';
                 break;
+            case 'tipoMovimiento':
+                editData.nombre = args[0];
+                editData.descripcion = args[1] || '';
+                break;
         }
 
         this.showCatalogForm(type, editData);
@@ -1628,7 +1830,8 @@ class App {
             tipoBien: 'tipo de bien',
             categoria: 'categoría',
             area: 'área',
-            metodo: 'método de adquisición'
+            metodo: 'método de adquisición',
+            tipoMovimiento: 'tipo de movimiento'
         };
 
         if (!confirm(`¿Está seguro de eliminar este ${typeNames[type]}?`)) return;
@@ -1652,6 +1855,9 @@ class App {
                     break;
                 case 'metodo':
                     await api.deleteMetodoAdquisicion(id);
+                    break;
+                case 'tipoMovimiento':
+                    await api.deleteTipoMovimiento(id);
                     break;
             }
 
@@ -1731,6 +1937,16 @@ class App {
                         result = await api.updateMetodoAdquisicion(id, nombreMetodo, descripcion);
                     } else {
                         result = await api.createMetodoAdquisicion(nombreMetodo, descripcion);
+                    }
+                    break;
+                }
+                case 'tipoMovimiento': {
+                    const nombreMovimiento = document.getElementById('catalog-nombre').value;
+                    const descripcion = document.getElementById('catalog-descripcion').value;
+                    if (isEdit) {
+                        result = await api.updateTipoMovimiento(id, nombreMovimiento, descripcion);
+                    } else {
+                        result = await api.createTipoMovimiento(nombreMovimiento, descripcion);
                     }
                     break;
                 }

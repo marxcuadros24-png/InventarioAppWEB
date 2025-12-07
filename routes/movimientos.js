@@ -53,16 +53,24 @@ router.post('/', async (req, res) => {
     try {
         const { idBien, idTipoMovimiento, descripcion, idUsuario } = req.body;
 
+        // Validaciones
+        if (!idBien || !idTipoMovimiento || !idUsuario) {
+            return res.status(400).json({
+                error: 'idBien, idTipoMovimiento e idUsuario son requeridos'
+            });
+        }
+
         const pool = await getConnection();
         const result = await pool.request()
             .input('idBien', sql.Int, idBien)
             .input('idTipoMovimiento', sql.Int, idTipoMovimiento)
-            .input('descripcion', sql.NVarChar, descripcion || null)
+            .input('descripcion', sql.NVarChar(500), descripcion || null)
             .input('idUsuario', sql.Int, idUsuario)
+            .input('fechaMovimiento', sql.DateTime, new Date())
             .query(`
-                INSERT INTO Movimiento (IdBien, IdTipoMovimiento, Descripcion, IdUsuario)
+                INSERT INTO Movimiento (IdBien, IdTipoMovimiento, Descripcion, IdUsuario, FechaMovimiento)
                 OUTPUT INSERTED.IdMovimiento
-                VALUES (@idBien, @idTipoMovimiento, @descripcion, @idUsuario)
+                VALUES (@idBien, @idTipoMovimiento, @descripcion, @idUsuario, @fechaMovimiento)
             `);
 
         res.json({
@@ -72,7 +80,7 @@ router.post('/', async (req, res) => {
 
     } catch (err) {
         console.error('Error al crear movimiento:', err);
-        res.status(500).json({ error: 'Error al crear movimiento' });
+        res.status(500).json({ error: err.message || 'Error al crear movimiento' });
     }
 });
 

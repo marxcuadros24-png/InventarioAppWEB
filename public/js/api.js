@@ -227,6 +227,31 @@ class API {
         });
     }
 
+    // Tipos de Movimiento
+    async getTiposMovimiento() {
+        return await this.request('/catalogos/tipos-movimiento');
+    }
+
+    async createTipoMovimiento(nombreMovimiento, descripcion) {
+        return await this.request('/catalogos/tipos-movimiento', {
+            method: 'POST',
+            body: JSON.stringify({ nombreMovimiento, descripcion })
+        });
+    }
+
+    async updateTipoMovimiento(id, nombreMovimiento, descripcion) {
+        return await this.request(`/catalogos/tipos-movimiento/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ nombreMovimiento, descripcion })
+        });
+    }
+
+    async deleteTipoMovimiento(id) {
+        return await this.request(`/catalogos/tipos-movimiento/${id}`, {
+            method: 'DELETE'
+        });
+    }
+
     // === BIENES ===
     async getBienes(filtros = {}) {
         const params = new URLSearchParams(filtros);
