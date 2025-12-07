@@ -560,12 +560,20 @@ const views = {
     // Reportes
     reportes: async () => {
         try {
-            // Obtener estadísticas para mostrar en los reportes
-            const [bienes, responsables, movimientos] = await Promise.all([
+            // Obtener todos los datos necesarios
+            const [bienes, responsables, movimientos, catalogos] = await Promise.all([
                 api.getBienes(),
                 api.getResponsables(),
-                api.getMovimientos()
+                api.getMovimientos(),
+                api.getCatalogos()
             ]);
+
+            // Guardar datos para uso en los métodos de reporte
+            app.reportesData = { bienes, responsables, movimientos, catalogos };
+
+            const tiposBien = catalogos.tipoBien || [];
+            const estados = catalogos.estados || [];
+            const areas = catalogos.areas || [];
 
             return `
                 <div class="card">
@@ -573,44 +581,91 @@ const views = {
                         <h2 class="card-title">Centro de Reportes</h2>
                     </div>
 
+                    <!-- Filtros Globales -->
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label for="report-mes">Mes:</label>
+                            <input type="month" id="report-mes">
+                        </div>
+                        <div class="filter-group">
+                            <label for="report-tipo-bien">Tipo de Bien:</label>
+                            <select id="report-tipo-bien">
+                                <option value="">Todos los tipos</option>
+                                ${tiposBien.map(t => `<option value="${t.IdTipoBien}">${t.NombreTipo}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="report-estado">Estado:</label>
+                            <select id="report-estado">
+                                <option value="">Todos los estados</option>
+                                ${estados.map(e => `<option value="${e.IdEstado}">${e.NombreEstado}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="report-responsable">Responsable:</label>
+                            <select id="report-responsable">
+                                <option value="">Todos los responsables</option>
+                                ${responsables.map(r => `<option value="${r.IdResponsable}">${r.Nombres} ${r.Apellidos}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="report-area">Área:</label>
+                            <select id="report-area">
+                                <option value="">Todas las áreas</option>
+                                ${areas.map(a => `<option value="${a.IdArea}">${a.Nombre}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="reports-grid">
-                        <div class="report-card" onclick="app.generarReporteBienes()">
+                        <div class="report-card" onclick="app.generarReporteBienesConFiltros()">
                             <div class="report-icon">📦</div>
                             <h3>Inventario de Bienes</h3>
-                            <p>Listado completo de todos los bienes registrados</p>
+                            <p>Listado de bienes según los filtros seleccionados</p>
                             <span class="badge badge-count">${bienes.length} bienes</span>
+                        </div>
+
+                        <div class="report-card" onclick="app.generarReporteBienesPorResponsable()">
+                            <div class="report-icon">👤</div>
+                            <h3>Bienes por Responsable</h3>
+                            <p>Qué bienes tiene a cargo cada responsable</p>
+                        </div>
+
+                        <div class="report-card" onclick="app.generarReporteBienesPorTipo()">
+                            <div class="report-icon">📂</div>
+                            <h3>Bienes por Tipo</h3>
+                            <p>Agrupados por tipo de bien (muebles, equipos, etc.)</p>
                         </div>
 
                         <div class="report-card" onclick="app.generarReporteBienesPorEstado()">
                             <div class="report-icon">📊</div>
                             <h3>Bienes por Estado</h3>
-                            <p>Reporte de bienes agrupados por su estado actual</p>
+                            <p>Agrupados por estado (Bueno, Regular, Malo)</p>
                         </div>
 
                         <div class="report-card" onclick="app.generarReporteBienesPorArea()">
                             <div class="report-icon">🏢</div>
                             <h3>Bienes por Área</h3>
-                            <p>Distribución de bienes por área/departamento</p>
+                            <p>Distribución por departamento/área</p>
+                        </div>
+
+                        <div class="report-card" onclick="app.generarReporteMovimientosMes()">
+                            <div class="report-icon">📅</div>
+                            <h3>Movimientos del Mes</h3>
+                            <p>Movimientos registrados en el mes seleccionado</p>
                         </div>
 
                         <div class="report-card" onclick="app.generarReporteResponsables()">
                             <div class="report-icon">👥</div>
-                            <h3>Responsables</h3>
-                            <p>Listado de responsables y bienes asignados</p>
+                            <h3>Listado de Responsables</h3>
+                            <p>Todos los responsables con datos de contacto</p>
                             <span class="badge badge-count">${responsables.length} responsables</span>
-                        </div>
-
-                        <div class="report-card" onclick="app.loadView('movimientos')">
-                            <div class="report-icon">🔄</div>
-                            <h3>Movimientos</h3>
-                            <p>Historial de movimientos con filtros</p>
-                            <span class="badge badge-count">${movimientos.length} movimientos</span>
                         </div>
 
                         <div class="report-card" onclick="app.loadView('auditoria')">
                             <div class="report-icon">📋</div>
-                            <h3>Auditoría</h3>
-                            <p>Registro de todas las acciones del sistema</p>
+                            <h3>Auditoría del Sistema</h3>
+                            <p>Registro de acciones con filtros avanzados</p>
                         </div>
                     </div>
                 </div>
@@ -2011,6 +2066,202 @@ class App {
         const printWindow = window.open('', '_blank');
         printWindow.document.write(content);
         printWindow.document.close();
+    }
+
+    // Obtener filtros seleccionados en reportes
+    getReportFilters() {
+        return {
+            mes: document.getElementById('report-mes')?.value || '',
+            tipoBien: document.getElementById('report-tipo-bien')?.value || '',
+            estado: document.getElementById('report-estado')?.value || '',
+            responsable: document.getElementById('report-responsable')?.value || '',
+            area: document.getElementById('report-area')?.value || ''
+        };
+    }
+
+    // Aplicar filtros a los bienes
+    filtrarBienes(bienes) {
+        const filtros = this.getReportFilters();
+        return bienes.filter(bien => {
+            if (filtros.tipoBien && bien.IdTipoBien != filtros.tipoBien) return false;
+            if (filtros.estado && bien.IdEstado != filtros.estado) return false;
+            if (filtros.responsable && bien.IdResponsable != filtros.responsable) return false;
+            if (filtros.area && bien.IdArea != filtros.area) return false;
+            return true;
+        });
+    }
+
+    async generarReporteBienesConFiltros() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const bienes = this.reportesData?.bienes || await api.getBienes();
+            const bienesFiltrados = this.filtrarBienes(bienes);
+
+            if (bienesFiltrados.length === 0) {
+                showToast('No hay bienes con los filtros seleccionados', 'warning');
+                return;
+            }
+
+            const filtros = this.getReportFilters();
+            let reportContent = this.getReportHeader('Inventario de Bienes', bienesFiltrados.length);
+
+            // Mostrar filtros aplicados
+            reportContent += `<p style="color:#666;font-size:12px;margin-top:-10px;">`;
+            if (filtros.tipoBien) reportContent += `Tipo: ${document.getElementById('report-tipo-bien').selectedOptions[0].text} | `;
+            if (filtros.estado) reportContent += `Estado: ${document.getElementById('report-estado').selectedOptions[0].text} | `;
+            if (filtros.responsable) reportContent += `Responsable: ${document.getElementById('report-responsable').selectedOptions[0].text} | `;
+            if (filtros.area) reportContent += `Área: ${document.getElementById('report-area').selectedOptions[0].text}`;
+            reportContent += `</p>`;
+
+            reportContent += `
+                <table>
+                    <thead>
+                        <tr><th>Código</th><th>Nombre</th><th>Marca</th><th>Estado</th><th>Área</th><th>Responsable</th><th>Valor</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            bienesFiltrados.forEach(bien => {
+                reportContent += `
+                    <tr>
+                        <td>${bien.CodigoPatrimonial}</td>
+                        <td>${bien.Nombre}</td>
+                        <td>${bien.Marca || '-'}</td>
+                        <td>${bien.Estado || '-'}</td>
+                        <td>${bien.Area || '-'}</td>
+                        <td>${bien.Responsable || '-'}</td>
+                        <td>${formatCurrency(bien.ValorActual || 0)}</td>
+                    </tr>
+                `;
+            });
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    async generarReporteBienesPorResponsable() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const bienes = this.reportesData?.bienes || await api.getBienes();
+            const bienesFiltrados = this.filtrarBienes(bienes);
+
+            // Agrupar por responsable
+            const porResponsable = bienesFiltrados.reduce((acc, bien) => {
+                const resp = bien.Responsable || 'Sin responsable asignado';
+                if (!acc[resp]) acc[resp] = [];
+                acc[resp].push(bien);
+                return acc;
+            }, {});
+
+            let reportContent = this.getReportHeader('Bienes por Responsable', bienesFiltrados.length);
+
+            for (const [responsable, items] of Object.entries(porResponsable)) {
+                reportContent += `<h3 style="margin-top:20px;color:#4361ee;border-bottom:2px solid #4361ee;padding-bottom:5px;">${responsable} (${items.length} bienes)</h3>`;
+                reportContent += `<table><thead><tr><th>Código</th><th>Nombre</th><th>Estado</th><th>Área</th><th>Valor</th></tr></thead><tbody>`;
+                let totalValor = 0;
+                items.forEach(bien => {
+                    totalValor += bien.ValorActual || 0;
+                    reportContent += `<tr><td>${bien.CodigoPatrimonial}</td><td>${bien.Nombre}</td><td>${bien.Estado || '-'}</td><td>${bien.Area || '-'}</td><td>${formatCurrency(bien.ValorActual || 0)}</td></tr>`;
+                });
+                reportContent += `</tbody></table>`;
+                reportContent += `<p style="text-align:right;font-weight:bold;">Total: ${formatCurrency(totalValor)}</p>`;
+            }
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    async generarReporteBienesPorTipo() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const bienes = this.reportesData?.bienes || await api.getBienes();
+            const bienesFiltrados = this.filtrarBienes(bienes);
+
+            // Agrupar por tipo
+            const porTipo = bienesFiltrados.reduce((acc, bien) => {
+                const tipo = bien.TipoBien || 'Sin tipo';
+                if (!acc[tipo]) acc[tipo] = [];
+                acc[tipo].push(bien);
+                return acc;
+            }, {});
+
+            let reportContent = this.getReportHeader('Bienes por Tipo', bienesFiltrados.length);
+
+            for (const [tipo, items] of Object.entries(porTipo)) {
+                reportContent += `<h3 style="margin-top:20px;color:#4361ee;border-bottom:2px solid #4361ee;padding-bottom:5px;">${tipo} (${items.length})</h3>`;
+                reportContent += `<table><thead><tr><th>Código</th><th>Nombre</th><th>Marca</th><th>Estado</th><th>Responsable</th></tr></thead><tbody>`;
+                items.forEach(bien => {
+                    reportContent += `<tr><td>${bien.CodigoPatrimonial}</td><td>${bien.Nombre}</td><td>${bien.Marca || '-'}</td><td>${bien.Estado || '-'}</td><td>${bien.Responsable || '-'}</td></tr>`;
+                });
+                reportContent += `</tbody></table>`;
+            }
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    async generarReporteMovimientosMes() {
+        try {
+            const mesSeleccionado = document.getElementById('report-mes')?.value;
+
+            if (!mesSeleccionado) {
+                showToast('Seleccione un mes en los filtros', 'warning');
+                return;
+            }
+
+            showToast('Generando reporte...', 'info');
+            const movimientos = this.reportesData?.movimientos || await api.getMovimientos();
+
+            // Filtrar por mes
+            const [year, month] = mesSeleccionado.split('-');
+            const movimientosFiltrados = movimientos.filter(mov => {
+                const fecha = new Date(mov.FechaMovimiento);
+                return fecha.getFullYear() === parseInt(year) && (fecha.getMonth() + 1) === parseInt(month);
+            });
+
+            if (movimientosFiltrados.length === 0) {
+                showToast('No hay movimientos en el mes seleccionado', 'warning');
+                return;
+            }
+
+            const nombreMes = new Date(year, month - 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+            let reportContent = this.getReportHeader(`Movimientos de ${nombreMes}`, movimientosFiltrados.length);
+
+            reportContent += `
+                <table>
+                    <thead>
+                        <tr><th>Fecha</th><th>Código</th><th>Bien</th><th>Tipo Movimiento</th><th>Usuario</th><th>Descripción</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            movimientosFiltrados.forEach(mov => {
+                reportContent += `
+                    <tr>
+                        <td>${formatDate(mov.FechaMovimiento)}</td>
+                        <td>${mov.CodigoPatrimonial}</td>
+                        <td>${mov.BienNombre}</td>
+                        <td>${mov.NombreMovimiento}</td>
+                        <td>${mov.NombreUsuario}</td>
+                        <td>${mov.Descripcion || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
     }
 
     async viewBien(id) {
