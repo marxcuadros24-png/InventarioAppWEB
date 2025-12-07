@@ -211,7 +211,8 @@ function downloadQRWithoutTemplate(qrDataURL, codigo) {
 }
 
 /**
- * Exporta múltiples QRs como PDF (10 etiquetas por página)
+ * Exporta múltiples QRs como PDF usando la plantilla institucional
+ * 10 etiquetas por página (2 columnas x 5 filas)
  * @param {Array<number>} selectedIds - IDs de bienes seleccionados (vacío = todos)
  */
 async function exportMultipleQRPDF(selectedIds = []) {
@@ -237,6 +238,16 @@ async function exportMultipleQRPDF(selectedIds = []) {
             return;
         }
 
+        // Cargar la plantilla primero
+        const template = new Image();
+        template.crossOrigin = 'anonymous';
+
+        await new Promise((resolve, reject) => {
+            template.onload = resolve;
+            template.onerror = () => reject(new Error('No se pudo cargar la plantilla'));
+            template.src = '/assets/qr-template.png';
+        });
+
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
             orientation: 'portrait',
@@ -245,15 +256,16 @@ async function exportMultipleQRPDF(selectedIds = []) {
         });
 
         // Configuración: 2 columnas x 5 filas = 10 QRs por página
+        // Tamaño ajustado para que quepan 10 etiquetas con la plantilla
         const config = {
-            marginX: 15,
-            marginY: 15,
+            marginX: 8,
+            marginY: 8,
             cols: 2,
             rows: 5,
-            qrWidth: 85,
-            qrHeight: 52,
-            spacingX: 10,
-            spacingY: 4
+            labelWidth: 95,  // mm
+            labelHeight: 54, // mm
+            spacingX: 5,
+            spacingY: 2
         };
 
         const qrsPerPage = config.cols * config.rows;
@@ -272,70 +284,48 @@ async function exportMultipleQRPDF(selectedIds = []) {
                 pdf.addPage();
             }
 
-            // Calcular posición
+            // Calcular posición en la página
             const posInPage = i % qrsPerPage;
             const col = posInPage % config.cols;
             const row = Math.floor(posInPage / config.cols);
-            const x = config.marginX + col * (config.qrWidth + config.spacingX);
-            const y = config.marginY + row * (config.qrHeight + config.spacingY);
+            const x = config.marginX + col * (config.labelWidth + config.spacingX);
+            const y = config.marginY + row * (config.labelHeight + config.spacingY);
 
             try {
                 // Generar QR
                 const qrDataURL = await generateQRSimple(codigo);
 
-                // Crear etiqueta en canvas
+                // Crear canvas con la plantilla
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 340;
-                canvas.height = 210;
 
-                // Fondo con borde
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#cccccc';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+                // Usar dimensiones de la plantilla
+                canvas.width = template.width;
+                canvas.height = template.height;
 
-                // Texto IEST
-                ctx.fillStyle = '#1a1a2e';
-                ctx.font = 'bold 14px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText('IEST CORACORA', 15, 25);
+                // Dibujar plantilla
+                ctx.drawImage(template, 0, 0);
 
-                // Código patrimonial grande
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText(`Código: ${codigo}`, 15, 50);
-
-                // Nombre del bien (truncado)
-                ctx.font = '11px Arial';
-                ctx.fillStyle = '#333333';
-                const nombre = (bien.Bien || bien.Nombre || '').substring(0, 25);
-                ctx.fillText(nombre, 15, 70);
-
-                // Área
-                ctx.font = '10px Arial';
-                ctx.fillStyle = '#666666';
-                const area = (bien.Area || 'Sin área').substring(0, 20);
-                ctx.fillText(`Área: ${area}`, 15, 90);
-
-                // Responsable
-                const resp = (bien.Responsable || 'Sin asignar').substring(0, 20);
-                ctx.fillText(`Resp: ${resp}`, 15, 110);
-
-                // Dibujar QR
+                // Cargar y dibujar el QR en la posición correcta de la plantilla
                 const qrImg = new Image();
                 await new Promise((resolve) => {
                     qrImg.onload = () => {
-                        ctx.drawImage(qrImg, 195, 25, 130, 130);
+                        // Posición del QR en la plantilla (ajustar según tu plantilla)
+                        // Generalmente el QR va a la derecha
+                        const qrSize = Math.min(template.height * 0.75, 200);
+                        const qrX = template.width - qrSize - 30;
+                        const qrY = (template.height - qrSize) / 2;
+
+                        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
                         resolve();
                     };
                     qrImg.onerror = resolve;
                     qrImg.src = qrDataURL;
                 });
 
-                // Agregar al PDF
+                // Agregar la etiqueta al PDF
                 const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', x, y, config.qrWidth, config.qrHeight);
+                pdf.addImage(imgData, 'PNG', x, y, config.labelWidth, config.labelHeight);
 
             } catch (err) {
                 console.error(`Error con bien ${codigo}:`, err);
