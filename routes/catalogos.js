@@ -515,15 +515,14 @@ router.get('/tipos-movimiento', async (req, res) => {
 
 router.post('/tipos-movimiento', async (req, res) => {
     try {
-        const { nombreMovimiento, descripcion } = req.body;
+        const { nombreMovimiento } = req.body;
         if (!nombreMovimiento || nombreMovimiento.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
         const pool = await getConnection();
         const result = await pool.request()
             .input('nombre', sql.NVarChar(100), nombreMovimiento.trim())
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO TipoMovimiento (NombreMovimiento, Descripcion) OUTPUT INSERTED.IdTipoMovimiento, INSERTED.NombreMovimiento, INSERTED.Descripcion VALUES (@nombre, @descripcion)');
+            .query('INSERT INTO TipoMovimiento (NombreMovimiento) OUTPUT INSERTED.IdTipoMovimiento, INSERTED.NombreMovimiento VALUES (@nombre)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear tipo de movimiento:', err);
@@ -533,7 +532,7 @@ router.post('/tipos-movimiento', async (req, res) => {
 
 router.put('/tipos-movimiento/:id', async (req, res) => {
     try {
-        const { nombreMovimiento, descripcion } = req.body;
+        const { nombreMovimiento } = req.body;
         if (!nombreMovimiento || nombreMovimiento.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
@@ -541,8 +540,7 @@ router.put('/tipos-movimiento/:id', async (req, res) => {
         await pool.request()
             .input('id', sql.Int, req.params.id)
             .input('nombre', sql.NVarChar(100), nombreMovimiento.trim())
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('UPDATE TipoMovimiento SET NombreMovimiento = @nombre, Descripcion = @descripcion WHERE IdTipoMovimiento = @id');
+            .query('UPDATE TipoMovimiento SET NombreMovimiento = @nombre WHERE IdTipoMovimiento = @id');
         res.json({ message: 'Tipo de movimiento actualizado exitosamente' });
     } catch (err) {
         console.error('Error al actualizar tipo de movimiento:', err);

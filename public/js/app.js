@@ -722,7 +722,6 @@ const views = {
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
-                                        <th>Descripción</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -731,9 +730,8 @@ const views = {
                                         <tr>
                                             <td>${item.IdTipoMovimiento}</td>
                                             <td><strong>${item.NombreMovimiento}</strong></td>
-                                            <td>${item.Descripcion || '-'}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('tipoMovimiento', ${item.IdTipoMovimiento}, '${item.NombreMovimiento.replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('tipoMovimiento', ${item.IdTipoMovimiento}, '${item.NombreMovimiento.replace(/'/g, "\\'")}')">Editar</button>
                                                 <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('tipoMovimiento', ${item.IdTipoMovimiento})">Eliminar</button>
                                             </td>
                                         </tr>
@@ -1752,10 +1750,6 @@ class App {
                         <label for="catalog-nombre">Nombre *</label>
                         <input type="text" id="catalog-nombre" name="nombreMovimiento" value="${editData?.nombre || ''}" required>
                     </div>
-                    <div class="form-group">
-                        <label for="catalog-descripcion">Descripción</label>
-                        <textarea id="catalog-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
-                    </div>
                 `;
                 break;
 
@@ -1816,7 +1810,6 @@ class App {
                 break;
             case 'tipoMovimiento':
                 editData.nombre = args[0];
-                editData.descripcion = args[1] || '';
                 break;
         }
 
@@ -1942,11 +1935,10 @@ class App {
                 }
                 case 'tipoMovimiento': {
                     const nombreMovimiento = document.getElementById('catalog-nombre').value;
-                    const descripcion = document.getElementById('catalog-descripcion').value;
                     if (isEdit) {
-                        result = await api.updateTipoMovimiento(id, nombreMovimiento, descripcion);
+                        result = await api.updateTipoMovimiento(id, nombreMovimiento);
                     } else {
-                        result = await api.createTipoMovimiento(nombreMovimiento, descripcion);
+                        result = await api.createTipoMovimiento(nombreMovimiento);
                     }
                     break;
                 }

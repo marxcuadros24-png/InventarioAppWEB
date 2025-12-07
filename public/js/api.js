@@ -232,17 +232,17 @@ class API {
         return await this.request('/catalogos/tipos-movimiento');
     }
 
-    async createTipoMovimiento(nombreMovimiento, descripcion) {
+    async createTipoMovimiento(nombreMovimiento) {
         return await this.request('/catalogos/tipos-movimiento', {
             method: 'POST',
-            body: JSON.stringify({ nombreMovimiento, descripcion })
+            body: JSON.stringify({ nombreMovimiento })
         });
     }
 
-    async updateTipoMovimiento(id, nombreMovimiento, descripcion) {
+    async updateTipoMovimiento(id, nombreMovimiento) {
         return await this.request(`/catalogos/tipos-movimiento/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ nombreMovimiento, descripcion })
+            body: JSON.stringify({ nombreMovimiento })
         });
     }
 
