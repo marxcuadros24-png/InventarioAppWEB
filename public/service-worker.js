@@ -2,11 +2,12 @@
 // SERVICE WORKER - PWA Offline Support
 // ============================================
 
-const CACHE_NAME = 'inventario-v1';
+const CACHE_NAME = 'inventario-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/css/styles.css',
+    '/css/modal-styles.css',
     '/js/app.js',
     '/js/api.js',
     '/js/db.js',
@@ -17,6 +18,9 @@ const urlsToCache = [
 
 // Instalación del Service Worker
 self.addEventListener('install', (event) => {
+    // Forzar activación inmediata del nuevo SW
+    self.skipWaiting();
+
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
