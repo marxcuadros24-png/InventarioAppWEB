@@ -2264,6 +2264,48 @@ class App {
         }
     }
 
+    // === SELECCIÓN MÚLTIPLE DE BIENES ===
+
+    toggleSelectAll(checked) {
+        const checkboxes = document.querySelectorAll('.bien-checkbox');
+        checkboxes.forEach(cb => cb.checked = checked);
+        this.updateExportButton();
+    }
+
+    updateExportButton() {
+        const selected = document.querySelectorAll('.bien-checkbox:checked');
+        const btn = document.getElementById('export-selected-btn');
+        if (btn) {
+            if (selected.length > 0) {
+                btn.style.display = 'inline-flex';
+                btn.textContent = `📄 Exportar ${selected.length} QR${selected.length > 1 ? 's' : ''}`;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+    }
+
+    async exportSelectedQRs() {
+        const selected = document.querySelectorAll('.bien-checkbox:checked');
+        const ids = Array.from(selected).map(cb => parseInt(cb.value));
+
+        if (ids.length === 0) {
+            showToast('Seleccione al menos un bien', 'warning');
+            return;
+        }
+
+        // Llamar a la función de exportación múltiple a PDF
+        await exportMultipleQRPDF(ids);
+    }
+
+    filterBienes(searchTerm) {
+        const rows = document.querySelectorAll('#bienes-table tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
+        });
+    }
+
     async viewBien(id) {
         try {
             const bien = await api.getBien(id);
