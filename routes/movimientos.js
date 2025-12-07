@@ -61,6 +61,8 @@ router.post('/', async (req, res) => {
         }
 
         const pool = await getConnection();
+
+        // Usar SCOPE_IDENTITY() en lugar de OUTPUT para evitar conflicto con triggers
         const result = await pool.request()
             .input('idBien', sql.Int, idBien)
             .input('idTipoMovimiento', sql.Int, idTipoMovimiento)
@@ -69,8 +71,8 @@ router.post('/', async (req, res) => {
             .input('fechaMovimiento', sql.DateTime, new Date())
             .query(`
                 INSERT INTO Movimiento (IdBien, IdTipoMovimiento, Descripcion, IdUsuario, FechaMovimiento)
-                OUTPUT INSERTED.IdMovimiento
-                VALUES (@idBien, @idTipoMovimiento, @descripcion, @idUsuario, @fechaMovimiento)
+                VALUES (@idBien, @idTipoMovimiento, @descripcion, @idUsuario, @fechaMovimiento);
+                SELECT SCOPE_IDENTITY() AS IdMovimiento;
             `);
 
         res.json({
