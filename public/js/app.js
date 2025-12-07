@@ -684,25 +684,25 @@ const views = {
             return `
                 <div class="card catalogos-container">
                     <div class="card-header">
-                        <h2 class="card-title">⚙️ Gestión de Catálogos</h2>
+                        <h2 class="card-title">Gestión de Catálogos</h2>
                     </div>
                     
                     <!-- Tabs de navegación -->
                     <div class="catalog-tabs">
                         <button class="catalog-tab active" data-catalog="marcas" onclick="app.switchCatalogTab('marcas')">
-                            🏷️ Marcas
+                            Marcas
                         </button>
                         <button class="catalog-tab" data-catalog="estados" onclick="app.switchCatalogTab('estados')">
-                            📊 Estados
+                            Estados
                         </button>
                         <button class="catalog-tab" data-catalog="tiposBien" onclick="app.switchCatalogTab('tiposBien')">
-                            📦 Tipos de Bien
+                            Tipos de Bien
                         </button>
                         <button class="catalog-tab" data-catalog="categorias" onclick="app.switchCatalogTab('categorias')">
-                            📁 Categorías
+                            Categorías
                         </button>
                         <button class="catalog-tab" data-catalog="areas" onclick="app.switchCatalogTab('areas')">
-                            🏢 Áreas
+                            Áreas
                         </button>
                         <button class="catalog-tab" data-catalog="metodos" onclick="app.switchCatalogTab('metodos')">
                             Métodos de Adquisición
@@ -715,9 +715,9 @@ const views = {
                     <!-- Panel Marcas -->
                     <div class="catalog-panel active" id="panel-marcas">
                         <div class="panel-header">
-                            <h3>🏷️ Marcas</h3>
+                            <h3>Marcas</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('marca')">
-                                ➕ Nueva Marca
+                                + Nueva Marca
                             </button>
                         </div>
                         <div class="table-container">
@@ -735,8 +735,8 @@ const views = {
                                             <td>${item.IdMarca}</td>
                                             <td><strong>${item.Nombre}</strong></td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('marca', ${item.IdMarca}, '${item.Nombre.replace(/'/g, "\\'")}')">✏️</button>
-                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('marca', ${item.IdMarca})">🗑️</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('marca', ${item.IdMarca}, '${item.Nombre.replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('marca', ${item.IdMarca})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -748,9 +748,9 @@ const views = {
                     <!-- Panel Estados -->
                     <div class="catalog-panel" id="panel-estados">
                         <div class="panel-header">
-                            <h3>📊 Estados</h3>
+                            <h3>Estados</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('estado')">
-                                ➕ Nuevo Estado
+                                + Nuevo Estado
                             </button>
                         </div>
                         <div class="table-container">
@@ -759,7 +759,6 @@ const views = {
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
-                                        <th>Descripción</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -768,10 +767,9 @@ const views = {
                                         <tr>
                                             <td>${item.IdEstado}</td>
                                             <td><strong>${item.Nombre}</strong></td>
-                                            <td>${item.Descripcion || '-'}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('estado', ${item.IdEstado}, '${item.Nombre.replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">✏️</button>
-                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('estado', ${item.IdEstado})">🗑️</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('estado', ${item.IdEstado}, '${item.Nombre.replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('estado', ${item.IdEstado})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -783,9 +781,9 @@ const views = {
                     <!-- Panel Tipos de Bien -->
                     <div class="catalog-panel" id="panel-tiposBien">
                         <div class="panel-header">
-                            <h3>📦 Tipos de Bien</h3>
+                            <h3>Tipos de Bien</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('tipoBien')">
-                                ➕ Nuevo Tipo
+                                + Nuevo Tipo
                             </button>
                         </div>
                         <div class="table-container">
@@ -794,7 +792,6 @@ const views = {
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
-                                        <th>Descripción</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -803,10 +800,9 @@ const views = {
                                         <tr>
                                             <td>${item.IdTipoBien}</td>
                                             <td><strong>${item.Nombre}</strong></td>
-                                            <td>${item.Descripcion || '-'}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('tipoBien', ${item.IdTipoBien}, '${item.Nombre.replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">✏️</button>
-                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('tipoBien', ${item.IdTipoBien})">🗑️</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('tipoBien', ${item.IdTipoBien}, '${item.Nombre.replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('tipoBien', ${item.IdTipoBien})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -818,9 +814,9 @@ const views = {
                     <!-- Panel Categorías -->
                     <div class="catalog-panel" id="panel-categorias">
                         <div class="panel-header">
-                            <h3>📁 Categorías</h3>
+                            <h3>Categorías</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('categoria')">
-                                ➕ Nueva Categoría
+                                + Nueva Categoría
                             </button>
                         </div>
                         <div class="table-container">
@@ -840,8 +836,8 @@ const views = {
                                             <td><strong>${item.Nombre}</strong></td>
                                             <td><span class="badge badge-info">${item.TipoBienNombre}</span></td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('categoria', ${item.IdCategoria}, '${item.Nombre.replace(/'/g, "\\'")}', ${item.IdTipoBien})">✏️</button>
-                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('categoria', ${item.IdCategoria})">🗑️</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('categoria', ${item.IdCategoria}, '${item.Nombre.replace(/'/g, "\\'")}', ${item.IdTipoBien})">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('categoria', ${item.IdCategoria})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -853,9 +849,9 @@ const views = {
                     <!-- Panel Áreas -->
                     <div class="catalog-panel" id="panel-areas">
                         <div class="panel-header">
-                            <h3>🏢 Áreas</h3>
+                            <h3>Áreas</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('area')">
-                                ➕ Nueva Área
+                                + Nueva Área
                             </button>
                         </div>
                         <div class="table-container">
@@ -864,8 +860,6 @@ const views = {
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
-                                        <th>Ubicación</th>
-                                        <th>Descripción</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -874,11 +868,9 @@ const views = {
                                         <tr>
                                             <td>${item.IdArea}</td>
                                             <td><strong>${item.Nombre}</strong></td>
-                                            <td>${item.Ubicacion || '-'}</td>
-                                            <td>${item.Descripcion || '-'}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('area', ${item.IdArea}, '${item.Nombre.replace(/'/g, "\\'")}', '${(item.Ubicacion || '').replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">✏️</button>
-                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('area', ${item.IdArea})">🗑️</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('area', ${item.IdArea}, '${item.Nombre.replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('area', ${item.IdArea})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -890,9 +882,9 @@ const views = {
                     <!-- Panel Métodos de Adquisición -->
                     <div class="catalog-panel" id="panel-metodos">
                         <div class="panel-header">
-                            <h3>💳 Métodos de Adquisición</h3>
+                            <h3>Métodos de Adquisición</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showCatalogForm('metodo')">
-                                ➕ Nuevo Método
+                                + Nuevo Método
                             </button>
                         </div>
                         <div class="table-container">
@@ -901,7 +893,6 @@ const views = {
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
-                                        <th>Descripción</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -910,10 +901,9 @@ const views = {
                                         <tr>
                                             <td>${item.IdMetodo}</td>
                                             <td><strong>${item.NombreMetodo}</strong></td>
-                                            <td>${item.Descripcion || '-'}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('metodo', ${item.IdMetodo}, '${item.NombreMetodo.replace(/'/g, "\\'")}', '${(item.Descripcion || '').replace(/'/g, "\\'")}')">✏️</button>
-                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('metodo', ${item.IdMetodo})">🗑️</button>
+                                                <button class="btn btn-sm btn-secondary" onclick="app.editCatalogItem('metodo', ${item.IdMetodo}, '${item.NombreMetodo.replace(/'/g, "\\'")}')">Editar</button>
+                                                <button class="btn btn-sm btn-danger" onclick="app.deleteCatalogItem('metodo', ${item.IdMetodo})">Eliminar</button>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -2645,10 +2635,6 @@ class App {
                         <label for="catalog-nombre">Nombre *</label>
                         <input type="text" id="catalog-nombre" name="nombre" value="${editData?.nombre || ''}" required>
                     </div>
-                    <div class="form-group">
-                        <label for="catalog-descripcion">Descripción</label>
-                        <textarea id="catalog-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
-                    </div>
                 `;
                 break;
 
@@ -2658,10 +2644,6 @@ class App {
                     <div class="form-group">
                         <label for="catalog-nombre">Nombre *</label>
                         <input type="text" id="catalog-nombre" name="nombre" value="${editData?.nombre || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="catalog-descripcion">Descripción</label>
-                        <textarea id="catalog-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
                     </div>
                 `;
                 break;
@@ -2693,14 +2675,6 @@ class App {
                         <label for="catalog-nombre">Nombre *</label>
                         <input type="text" id="catalog-nombre" name="nombre" value="${editData?.nombre || ''}" required>
                     </div>
-                    <div class="form-group">
-                        <label for="catalog-ubicacion">Ubicación</label>
-                        <input type="text" id="catalog-ubicacion" name="ubicacion" value="${editData?.ubicacion || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label for="catalog-descripcion">Descripción</label>
-                        <textarea id="catalog-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
-                    </div>
                 `;
                 break;
 
@@ -2710,10 +2684,6 @@ class App {
                     <div class="form-group">
                         <label for="catalog-nombre">Nombre *</label>
                         <input type="text" id="catalog-nombre" name="nombreMetodo" value="${editData?.nombre || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="catalog-descripcion">Descripción</label>
-                        <textarea id="catalog-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
                     </div>
                 `;
                 break;
@@ -2766,25 +2736,16 @@ class App {
 
         switch (type) {
             case 'marca':
-                editData.nombre = args[0];
-                break;
             case 'estado':
             case 'tipoBien':
+            case 'area':
             case 'metodo':
+            case 'tipoMovimiento':
                 editData.nombre = args[0];
-                editData.descripcion = args[1] || '';
                 break;
             case 'categoria':
                 editData.nombre = args[0];
                 editData.idTipoBien = args[1];
-                break;
-            case 'area':
-                editData.nombre = args[0];
-                editData.ubicacion = args[1] || '';
-                editData.descripcion = args[2] || '';
-                break;
-            case 'tipoMovimiento':
-                editData.nombre = args[0];
                 break;
         }
 
