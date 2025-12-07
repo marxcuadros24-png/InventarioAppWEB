@@ -2,7 +2,7 @@
 // SERVICE WORKER - PWA Offline Support
 // ============================================
 
-const CACHE_NAME = 'inventario-v4';
+const CACHE_NAME = 'inventario-v5';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -48,7 +48,6 @@ self.addEventListener('activate', (event) => {
 
 // Intercepción de requests
 self.addEventListener('fetch', (event) => {
-    // Ignorar peticiones que no se pueden cachear
     const url = new URL(event.request.url);
 
     // Ignorar chrome-extension y otros esquemas no HTTP
@@ -61,6 +60,13 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // NUNCA cachear peticiones a la API - siempre ir al servidor
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
+    // Para archivos estáticos: Cache First, fallback a Network
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
