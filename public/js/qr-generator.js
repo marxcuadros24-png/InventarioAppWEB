@@ -316,31 +316,21 @@ async function exportMultipleQRPDF(selectedIds = []) {
                 const qrImg = new Image();
                 await new Promise((resolve) => {
                     qrImg.onload = () => {
-                        const qrSize = Math.min(template.height * 0.50, 140);
-                        const qrX = template.width * 0.65;
-                        const qrY = 10;
+                        // Plantilla: 600px x 300px
+                        // QR centrado en la mitad derecha
+                        const qrSize = 180;  // Tamaño del QR
+                        const qrX = 380;     // Posición X (centro de la mitad derecha)
+                        const qrY = 30;      // Posición Y (arriba con margen)
 
                         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-                        // Info debajo del QR
+                        // Nombre del bien debajo del QR
                         ctx.fillStyle = '#000000';
                         ctx.textAlign = 'center';
+                        ctx.font = 'bold 14px Arial';
                         const centerX = qrX + qrSize / 2;
-                        let textY = qrY + qrSize + 15;
-
-                        ctx.font = 'bold 11px Arial';
-                        ctx.fillText((bien.Bien || bien.Nombre || '').substring(0, 22), centerX, textY);
-
-                        textY += 13;
-                        ctx.font = '10px Arial';
-                        ctx.fillText(`Cód: ${codigo}`, centerX, textY);
-
-                        textY += 12;
-                        ctx.font = '9px Arial';
-                        ctx.fillText(`Área: ${(bien.Area || '-').substring(0, 20)}`, centerX, textY);
-
-                        textY += 11;
-                        ctx.fillText(`Resp: ${(bien.Responsable || '-').substring(0, 18)}`, centerX, textY);
+                        const nombreBien = (bien.Bien || bien.Nombre || codigo).substring(0, 25);
+                        ctx.fillText(nombreBien, centerX, qrY + qrSize + 25);
 
                         resolve();
                     };
