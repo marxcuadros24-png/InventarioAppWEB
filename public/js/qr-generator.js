@@ -306,26 +306,51 @@ async function exportMultipleQRPDF(selectedIds = []) {
                 // Dibujar plantilla
                 ctx.drawImage(template, 0, 0);
 
-                // Cargar y dibujar el QR en la posición correcta de la plantilla
+                // Cargar y dibujar el QR
                 const qrImg = new Image();
                 await new Promise((resolve) => {
                     qrImg.onload = () => {
-                        // Ajustar posición del QR - más cerca del logo (centro-derecha)
-                        const qrSize = Math.min(template.height * 0.65, 180);
-                        // Posicionar el QR al lado del logo, no tan a la derecha
-                        const qrX = template.width * 0.55;  // 55% desde la izquierda
-                        const qrY = (template.height - qrSize) / 2 - 15;
+                        // Posición del QR - al lado derecho del logo
+                        const qrSize = Math.min(template.height * 0.50, 140);
+                        const qrX = template.width * 0.65;  // 65% desde la izquierda
+                        const qrY = 10;  // Arriba para dejar espacio a la info
 
                         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-                        // Agregar nombre del bien debajo del QR
+                        // Agregar información del bien debajo del QR
                         ctx.fillStyle = '#000000';
-                        ctx.font = 'bold 14px Arial';
                         ctx.textAlign = 'center';
+                        const centerX = qrX + qrSize / 2;
+                        let textY = qrY + qrSize + 15;
 
-                        // Truncar nombre si es muy largo
-                        const nombreBien = (bien.Bien || bien.Nombre || codigo).substring(0, 25);
-                        ctx.fillText(nombreBien, qrX + qrSize / 2, qrY + qrSize + 20);
+                        // Nombre del bien
+                        ctx.font = 'bold 11px Arial';
+                        const nombreBien = (bien.Bien || bien.Nombre || 'Sin nombre').substring(0, 22);
+                        ctx.fillText(nombreBien, centerX, textY);
+
+                        // Código patrimonial
+                        textY += 13;
+                        ctx.font = '10px Arial';
+                        ctx.fillText(`Cód: ${codigo}`, centerX, textY);
+
+                        // Área
+                        textY += 12;
+                        ctx.font = '9px Arial';
+                        const area = (bien.Area || 'Sin área').substring(0, 20);
+                        ctx.fillText(`Área: ${area}`, centerX, textY);
+
+                        // Responsable
+                        textY += 11;
+                        const resp = (bien.Responsable || 'Sin asignar').substring(0, 18);
+                        ctx.fillText(`Resp: ${resp}`, centerX, textY);
+
+                        // Fecha de adquisición
+                        textY += 11;
+                        const fecha = bien.FechaAdquisicion || bien.FechaRegistro;
+                        if (fecha) {
+                            const fechaFormateada = new Date(fecha).toLocaleDateString('es-PE');
+                            ctx.fillText(`Fecha: ${fechaFormateada}`, centerX, textY);
+                        }
 
                         resolve();
                     };
