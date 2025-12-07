@@ -457,41 +457,167 @@ const views = {
         try {
             const auditoria = await api.getAuditoria();
 
+            // Obtener valores únicos para los filtros
+            const tablas = [...new Set(auditoria.map(a => a.Tabla))].filter(Boolean).sort();
+            const usuarios = [...new Set(auditoria.map(a => a.Usuario))].filter(Boolean).sort();
+            const acciones = [...new Set(auditoria.map(a => a.Accion))].filter(Boolean).sort();
+
+            const emptyState = auditoria.length === 0 ? `
+                <div class="empty-state">
+                    <h3>No hay registros de auditoría</h3>
+                    <p>Los registros de auditoría se generan automáticamente con las acciones del sistema</p>
+                </div>
+            ` : '';
+
+            const tableContent = auditoria.length > 0 ? `
+                <div class="table-container">
+                    <table id="auditoria-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tabla</th>
+                                <th>Acción</th>
+                                <th>Usuario</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${auditoria.map(aud => `
+                                <tr data-tabla="${aud.Tabla || ''}" data-usuario="${aud.Usuario || ''}" data-accion="${aud.Accion || ''}" data-fecha="${aud.Fecha}">
+                                    <td>${formatDate(aud.Fecha)}</td>
+                                    <td><span class="badge badge-info">${aud.Tabla || '-'}</span></td>
+                                    <td><span class="badge badge-${aud.Accion === 'INSERT' ? 'success' : aud.Accion === 'DELETE' ? 'danger' : 'warning'}">${aud.Accion || '-'}</span></td>
+                                    <td>${aud.Usuario || '-'}</td>
+                                    <td>${aud.Descripcion || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '';
+
             return `
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">📋 Auditoría del Sistema</h2>
+                    <div class="card-header flex-between">
+                        <div class="header-title-group">
+                            <h2 class="card-title">Auditoría del Sistema</h2>
+                            <span class="badge badge-count" id="auditoria-count">${auditoria.length} registro${auditoria.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="app.generarReporteAuditoria()">
+                                Generar Reporte
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Tabla</th>
-                                    <th>Acción</th>
-                                    <th>Usuario</th>
-                                    <th>Descripción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${auditoria.map(aud => `
-                                    <tr>
-                                        <td>${formatDate(aud.Fecha)}</td>
-                                        <td><strong>${aud.Tabla}</strong></td>
-                                        <td>${aud.Accion}</td>
-                                        <td>${aud.Usuario}</td>
-                                        <td>${aud.Descripcion}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                    ${auditoria.length > 0 ? `
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label for="filter-tabla">Tabla:</label>
+                            <select id="filter-tabla" onchange="app.filterAuditoria()">
+                                <option value="">Todas las tablas</option>
+                                ${tablas.map(t => `<option value="${t}">${t}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-accion">Acción:</label>
+                            <select id="filter-accion" onchange="app.filterAuditoria()">
+                                <option value="">Todas las acciones</option>
+                                ${acciones.map(a => `<option value="${a}">${a}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-usuario-aud">Usuario:</label>
+                            <select id="filter-usuario-aud" onchange="app.filterAuditoria()">
+                                <option value="">Todos los usuarios</option>
+                                ${usuarios.map(u => `<option value="${u}">${u}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-fecha-desde-aud">Desde:</label>
+                            <input type="date" id="filter-fecha-desde-aud" onchange="app.filterAuditoria()">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-fecha-hasta-aud">Hasta:</label>
+                            <input type="date" id="filter-fecha-hasta-aud" onchange="app.filterAuditoria()">
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="app.limpiarFiltrosAuditoria()">
+                            Limpiar filtros
+                        </button>
                     </div>
+                    ` : ''}
+
+                    ${emptyState}
+                    ${tableContent}
                 </div>
             `;
         } catch (error) {
             console.error('Error al cargar auditoría:', error);
             return '<div class="card"><p>Error al cargar auditoría. Requiere conexión online.</p></div>';
+        }
+    },
+
+    // Reportes
+    reportes: async () => {
+        try {
+            // Obtener estadísticas para mostrar en los reportes
+            const [bienes, responsables, movimientos] = await Promise.all([
+                api.getBienes(),
+                api.getResponsables(),
+                api.getMovimientos()
+            ]);
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Centro de Reportes</h2>
+                    </div>
+
+                    <div class="reports-grid">
+                        <div class="report-card" onclick="app.generarReporteBienes()">
+                            <div class="report-icon">📦</div>
+                            <h3>Inventario de Bienes</h3>
+                            <p>Listado completo de todos los bienes registrados</p>
+                            <span class="badge badge-count">${bienes.length} bienes</span>
+                        </div>
+
+                        <div class="report-card" onclick="app.generarReporteBienesPorEstado()">
+                            <div class="report-icon">📊</div>
+                            <h3>Bienes por Estado</h3>
+                            <p>Reporte de bienes agrupados por su estado actual</p>
+                        </div>
+
+                        <div class="report-card" onclick="app.generarReporteBienesPorArea()">
+                            <div class="report-icon">🏢</div>
+                            <h3>Bienes por Área</h3>
+                            <p>Distribución de bienes por área/departamento</p>
+                        </div>
+
+                        <div class="report-card" onclick="app.generarReporteResponsables()">
+                            <div class="report-icon">👥</div>
+                            <h3>Responsables</h3>
+                            <p>Listado de responsables y bienes asignados</p>
+                            <span class="badge badge-count">${responsables.length} responsables</span>
+                        </div>
+
+                        <div class="report-card" onclick="app.loadView('movimientos')">
+                            <div class="report-icon">🔄</div>
+                            <h3>Movimientos</h3>
+                            <p>Historial de movimientos con filtros</p>
+                            <span class="badge badge-count">${movimientos.length} movimientos</span>
+                        </div>
+
+                        <div class="report-card" onclick="app.loadView('auditoria')">
+                            <div class="report-icon">📋</div>
+                            <h3>Auditoría</h3>
+                            <p>Registro de todas las acciones del sistema</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error al cargar reportes:', error);
+            return '<div class="card"><p>Error al cargar reportes</p></div>';
         }
     },
 
@@ -1000,6 +1126,7 @@ class App {
             responsables: 'Gestión de Responsables',
             movimientos: 'Historial de Movimientos',
             auditoria: 'Auditoría del Sistema',
+            reportes: 'Centro de Reportes',
             catalogos: 'Gestión de Catálogos',
             usuarios: 'Gestión de Usuarios'
         };
@@ -1623,6 +1750,266 @@ class App {
         // Abrir ventana de impresión
         const printWindow = window.open('', '_blank');
         printWindow.document.write(reportContent);
+        printWindow.document.close();
+    }
+
+    // === AUDITORÍA ===
+    filterAuditoria() {
+        const tablaFilter = document.getElementById('filter-tabla')?.value || '';
+        const accionFilter = document.getElementById('filter-accion')?.value || '';
+        const usuarioFilter = document.getElementById('filter-usuario-aud')?.value || '';
+        const fechaDesde = document.getElementById('filter-fecha-desde-aud')?.value || '';
+        const fechaHasta = document.getElementById('filter-fecha-hasta-aud')?.value || '';
+
+        const rows = document.querySelectorAll('#auditoria-table tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const tabla = row.dataset.tabla;
+            const accion = row.dataset.accion;
+            const usuario = row.dataset.usuario;
+            const fecha = row.dataset.fecha ? new Date(row.dataset.fecha) : null;
+
+            let show = true;
+
+            if (tablaFilter && tabla !== tablaFilter) show = false;
+            if (show && accionFilter && accion !== accionFilter) show = false;
+            if (show && usuarioFilter && usuario !== usuarioFilter) show = false;
+
+            if (show && fechaDesde && fecha) {
+                const desde = new Date(fechaDesde);
+                if (fecha < desde) show = false;
+            }
+
+            if (show && fechaHasta && fecha) {
+                const hasta = new Date(fechaHasta);
+                hasta.setHours(23, 59, 59, 999);
+                if (fecha > hasta) show = false;
+            }
+
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+
+        const countElement = document.getElementById('auditoria-count');
+        if (countElement) {
+            countElement.textContent = `${visibleCount} registro${visibleCount !== 1 ? 's' : ''}`;
+        }
+    }
+
+    limpiarFiltrosAuditoria() {
+        ['filter-tabla', 'filter-accion', 'filter-usuario-aud', 'filter-fecha-desde-aud', 'filter-fecha-hasta-aud'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        this.filterAuditoria();
+    }
+
+    generarReporteAuditoria() {
+        const rows = document.querySelectorAll('#auditoria-table tbody tr');
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+
+        if (visibleRows.length === 0) {
+            showToast('No hay registros para generar el reporte', 'warning');
+            return;
+        }
+
+        let reportContent = this.getReportHeader('Reporte de Auditoría', visibleRows.length);
+        reportContent += `
+            <table>
+                <thead>
+                    <tr><th>Fecha</th><th>Tabla</th><th>Acción</th><th>Usuario</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+        `;
+
+        visibleRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            reportContent += '<tr>';
+            cells.forEach(cell => reportContent += `<td>${cell.textContent}</td>`);
+            reportContent += '</tr>';
+        });
+
+        reportContent += this.getReportFooter();
+        this.openPrintWindow(reportContent);
+    }
+
+    // === REPORTES GENERALES ===
+    async generarReporteBienes() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const bienes = await api.getBienes();
+
+            let reportContent = this.getReportHeader('Inventario General de Bienes', bienes.length);
+            reportContent += `
+                <table>
+                    <thead>
+                        <tr><th>Código</th><th>Nombre</th><th>Marca</th><th>Estado</th><th>Área</th><th>Responsable</th><th>Valor</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            bienes.forEach(bien => {
+                reportContent += `
+                    <tr>
+                        <td>${bien.CodigoPatrimonial}</td>
+                        <td>${bien.Nombre}</td>
+                        <td>${bien.Marca || '-'}</td>
+                        <td>${bien.Estado || '-'}</td>
+                        <td>${bien.Area || '-'}</td>
+                        <td>${bien.Responsable || '-'}</td>
+                        <td>${formatCurrency(bien.ValorActual || 0)}</td>
+                    </tr>
+                `;
+            });
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    async generarReporteBienesPorEstado() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const bienes = await api.getBienes();
+
+            // Agrupar por estado
+            const porEstado = bienes.reduce((acc, bien) => {
+                const estado = bien.Estado || 'Sin estado';
+                if (!acc[estado]) acc[estado] = [];
+                acc[estado].push(bien);
+                return acc;
+            }, {});
+
+            let reportContent = this.getReportHeader('Bienes por Estado', bienes.length);
+
+            for (const [estado, items] of Object.entries(porEstado)) {
+                reportContent += `<h3 style="margin-top:20px;color:#4361ee;">${estado} (${items.length})</h3>`;
+                reportContent += `<table><thead><tr><th>Código</th><th>Nombre</th><th>Marca</th><th>Área</th></tr></thead><tbody>`;
+                items.forEach(bien => {
+                    reportContent += `<tr><td>${bien.CodigoPatrimonial}</td><td>${bien.Nombre}</td><td>${bien.Marca || '-'}</td><td>${bien.Area || '-'}</td></tr>`;
+                });
+                reportContent += `</tbody></table>`;
+            }
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    async generarReporteBienesPorArea() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const bienes = await api.getBienes();
+
+            // Agrupar por área
+            const porArea = bienes.reduce((acc, bien) => {
+                const area = bien.Area || 'Sin área asignada';
+                if (!acc[area]) acc[area] = [];
+                acc[area].push(bien);
+                return acc;
+            }, {});
+
+            let reportContent = this.getReportHeader('Bienes por Área', bienes.length);
+
+            for (const [area, items] of Object.entries(porArea)) {
+                reportContent += `<h3 style="margin-top:20px;color:#4361ee;">${area} (${items.length})</h3>`;
+                reportContent += `<table><thead><tr><th>Código</th><th>Nombre</th><th>Estado</th><th>Responsable</th></tr></thead><tbody>`;
+                items.forEach(bien => {
+                    reportContent += `<tr><td>${bien.CodigoPatrimonial}</td><td>${bien.Nombre}</td><td>${bien.Estado || '-'}</td><td>${bien.Responsable || '-'}</td></tr>`;
+                });
+                reportContent += `</tbody></table>`;
+            }
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    async generarReporteResponsables() {
+        try {
+            showToast('Generando reporte...', 'info');
+            const responsables = await api.getResponsables();
+
+            let reportContent = this.getReportHeader('Listado de Responsables', responsables.length);
+            reportContent += `
+                <table>
+                    <thead>
+                        <tr><th>DNI</th><th>Nombres</th><th>Apellidos</th><th>Área</th><th>Teléfono</th><th>Correo</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            responsables.forEach(resp => {
+                reportContent += `
+                    <tr>
+                        <td>${resp.DNI || '-'}</td>
+                        <td>${resp.Nombres}</td>
+                        <td>${resp.Apellidos}</td>
+                        <td>${resp.AreaNombre || '-'}</td>
+                        <td>${resp.Telefono || '-'}</td>
+                        <td>${resp.Correo || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            reportContent += this.getReportFooter();
+            this.openPrintWindow(reportContent);
+        } catch (error) {
+            showToast('Error al generar reporte', 'error');
+        }
+    }
+
+    // === HELPERS DE REPORTES ===
+    getReportHeader(titulo, total) {
+        return `
+            <html>
+            <head>
+                <title>${titulo}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #1a1a2e; text-align: center; margin-bottom: 5px; }
+                    .subtitle { text-align: center; color: #666; margin-bottom: 20px; }
+                    .info { margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+                    .info p { margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                    th { background-color: #4361ee; color: white; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #666; }
+                    @media print { body { padding: 0; } }
+                </style>
+            </head>
+            <body>
+                <h1>${titulo}</h1>
+                <p class="subtitle">Sistema de Inventario Institucional</p>
+                <div class="info">
+                    <p><strong>Fecha de generación:</strong> ${new Date().toLocaleString('es-PE')}</p>
+                    <p><strong>Total de registros:</strong> ${total}</p>
+                </div>
+        `;
+    }
+
+    getReportFooter() {
+        return `
+                <div class="footer">
+                    <p>Sistema de Inventario Institucional - Reporte generado automáticamente</p>
+                </div>
+                <script>window.print();</script>
+            </body>
+            </html>
+        `;
+    }
+
+    openPrintWindow(content) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(content);
         printWindow.document.close();
     }
 

@@ -67,6 +67,12 @@ class API {
         sessionStorage.removeItem('usuario');
     }
 
+    // === AUDITORÍA ===
+    async getAuditoria(filtros = {}) {
+        const params = new URLSearchParams(filtros);
+        return await this.request(`/auditoria?${params}`);
+    }
+
     // === CATÁLOGOS ===
     async getCatalogos() {
         return await this.request('/catalogos/all');
