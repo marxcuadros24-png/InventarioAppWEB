@@ -4,9 +4,84 @@
 // ============================================
 
 /**
- * Genera un código QR simple con solo el código patrimonial
- * @param {string} codigoPatrimonial - Código patrimonial del bien
+ * Genera un código QR con información completa del bien
+ * @param {Object} bien - Objeto con datos del bien
  * @returns {Promise<string>} - Data URL del QR generado
+ */
+async function generateQRWithData(bien) {
+    return new Promise((resolve, reject) => {
+        const codigo = bien.CodigoPatrimonial || bien.codigoPatrimonial || '';
+
+        if (!codigo) {
+            reject(new Error('Código patrimonial requerido'));
+            return;
+        }
+
+        // Crear texto compacto para el QR (evitar overflow)
+        // Usar formato de líneas cortas
+        const truncate = (text, max) => {
+            if (!text) return '-';
+            return text.length > max ? text.substring(0, max) + '..' : text;
+        };
+
+        const nombre = truncate(bien.Bien || bien.Nombre, 25);
+        const area = truncate(bien.Area, 20);
+        const responsable = truncate(bien.Responsable, 20);
+
+        // Formatear fecha
+        let fecha = '-';
+        const fechaRaw = bien.FechaAdquisicion || bien.FechaRegistro;
+        if (fechaRaw) {
+            const d = new Date(fechaRaw);
+            fecha = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+        }
+
+        // Texto del QR en formato compacto (máximo ~200 caracteres)
+        const qrText = `COD:${codigo}
+BIEN:${nombre}
+AREA:${area}
+RESP:${responsable}
+FECHA:${fecha}`;
+
+        console.log('📊 QR contenido:', qrText.length, 'caracteres');
+
+        // Crear elemento temporal para generar QR
+        const tempDiv = document.createElement('div');
+        tempDiv.style.display = 'none';
+        document.body.appendChild(tempDiv);
+
+        try {
+            // Generar QR con nivel de corrección L (menor) para más capacidad
+            new QRCode(tempDiv, {
+                text: qrText,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+
+            // Esperar a que se genere el QR
+            setTimeout(() => {
+                const canvas = tempDiv.querySelector('canvas');
+                if (canvas) {
+                    const dataURL = canvas.toDataURL('image/png');
+                    document.body.removeChild(tempDiv);
+                    resolve(dataURL);
+                } else {
+                    document.body.removeChild(tempDiv);
+                    reject(new Error('No se pudo generar el QR'));
+                }
+            }, 150);
+        } catch (error) {
+            document.body.removeChild(tempDiv);
+            reject(error);
+        }
+    });
+}
+
+/**
+ * Genera un código QR simple con solo el código (fallback)
  */
 async function generateQRSimple(codigoPatrimonial) {
     return new Promise((resolve, reject) => {
@@ -15,13 +90,11 @@ async function generateQRSimple(codigoPatrimonial) {
             return;
         }
 
-        // Crear elemento temporal para generar QR
         const tempDiv = document.createElement('div');
         tempDiv.style.display = 'none';
         document.body.appendChild(tempDiv);
 
         try {
-            // Generar QR con solo el código patrimonial
             new QRCode(tempDiv, {
                 text: codigoPatrimonial,
                 width: 256,
@@ -31,7 +104,6 @@ async function generateQRSimple(codigoPatrimonial) {
                 correctLevel: QRCode.CorrectLevel.M
             });
 
-            // Esperar a que se genere el QR
             setTimeout(() => {
                 const canvas = tempDiv.querySelector('canvas');
                 if (canvas) {
@@ -58,7 +130,8 @@ async function generateQRSimple(codigoPatrimonial) {
 async function generateQRPreview(bienData) {
     try {
         const codigo = bienData.CodigoPatrimonial || bienData.codigoPatrimonial;
-        const qrDataURL = await generateQRSimple(codigo);
+        // Usar QR con datos completos
+        const qrDataURL = await generateQRWithData(bienData);
 
         return `
             <div class="qr-preview">
@@ -84,8 +157,8 @@ async function exportSingleQRImage(idBien) {
         const bien = await api.getBien(idBien);
         const codigo = bien.CodigoPatrimonial;
 
-        // Generar QR
-        const qrDataURL = await generateQRSimple(codigo);
+        // Generar QR con datos completos
+        const qrDataURL = await generateQRWithData(bien);
 
         // Crear canvas para combinar plantilla + QR + texto
         const canvas = document.createElement('canvas');
@@ -292,8 +365,8 @@ async function exportMultipleQRPDF(selectedIds = []) {
             const y = config.marginY + row * (config.labelHeight + config.spacingY);
 
             try {
-                // Generar QR
-                const qrDataURL = await generateQRSimple(codigo);
+                // Generar QR con datos completos
+                const qrDataURL = await generateQRWithData(bien);
 
                 // Crear canvas con la plantilla
                 const canvas = document.createElement('canvas');
@@ -372,7 +445,7 @@ async function exportMultipleQRPDF(selectedIds = []) {
         pdf.save(`QRs_Inventario_${fecha}.pdf`);
 
         const totalPages = Math.ceil(bienes.length / qrsPerPage);
-        showToast(`✅ PDF generado: ${bienes.length} QR(s) en ${totalPages} página(s)`, 'success');
+        showToast(` PDF generado: ${bienes.length} QR(s) en ${totalPages} página(s)`, 'success');
 
     } catch (error) {
         console.error('Error al generar PDF:', error);
