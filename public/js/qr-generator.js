@@ -317,20 +317,22 @@ async function exportMultipleQRPDF(selectedIds = []) {
                 await new Promise((resolve) => {
                     qrImg.onload = () => {
                         // Plantilla: 600px x 300px
-                        // QR centrado en la mitad derecha
-                        const qrSize = 180;  // Tamaño del QR
-                        const qrX = 380;     // Posición X (centro de la mitad derecha)
-                        const qrY = 30;      // Posición Y (arriba con margen)
+                        // QR centrado en la mitad derecha (300-600px)
+                        const qrSize = 160;
+                        // Centrar QR en la mitad derecha: 300 + (300/2) - (qrSize/2) = 370
+                        const qrX = 370;
+                        // Centrar verticalmente con espacio para nombre: (300 - qrSize - 30) / 2 = 55
+                        const qrY = 45;
 
                         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-                        // Nombre del bien debajo del QR
+                        // Solo nombre del bien debajo del QR
                         ctx.fillStyle = '#000000';
                         ctx.textAlign = 'center';
-                        ctx.font = 'bold 14px Arial';
+                        ctx.font = 'bold 13px Arial';
                         const centerX = qrX + qrSize / 2;
-                        const nombreBien = (bien.Bien || bien.Nombre || codigo).substring(0, 25);
-                        ctx.fillText(nombreBien, centerX, qrY + qrSize + 25);
+                        const nombreBien = (bien.Bien || bien.Nombre || '').substring(0, 28);
+                        ctx.fillText(nombreBien, centerX, qrY + qrSize + 22);
 
                         resolve();
                     };
