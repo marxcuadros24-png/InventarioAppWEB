@@ -1287,7 +1287,7 @@ class App {
                 metodos.forEach(metodo => {
                     const option = document.createElement('option');
                     option.value = metodo.IdMetodo;
-                    option.textContent = metodo.Nombre;
+                    option.textContent = metodo.NombreMetodo || metodo.Nombre;
                     selectMetodo.appendChild(option);
                 });
             }
