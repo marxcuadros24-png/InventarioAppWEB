@@ -344,11 +344,16 @@ const views = {
     // Movimientos
     movimientos: async () => {
         try {
-            const movimientos = await syncManager.hybridOperation(
-                'movimientos',
-                () => api.getMovimientos(),
-                () => localDB.getAll('movimientos')
-            );
+            const [movimientos, catalogos] = await Promise.all([
+                syncManager.hybridOperation(
+                    'movimientos',
+                    () => api.getMovimientos(),
+                    () => localDB.getAll('movimientos')
+                ),
+                api.getCatalogos()
+            ]);
+
+            const tiposMovimiento = catalogos.tiposMovimiento || [];
 
             const emptyState = movimientos.length === 0 ? `
                 <div class="empty-state">
@@ -375,7 +380,7 @@ const views = {
                         </thead>
                         <tbody>
                             ${movimientos.map(mov => `
-                                <tr>
+                                <tr data-tipo="${mov.IdTipoMovimiento}" data-fecha="${mov.FechaMovimiento}">
                                     <td>${formatDate(mov.FechaMovimiento)}</td>
                                     <td><strong>${mov.CodigoPatrimonial}</strong></td>
                                     <td>${mov.BienNombre}</td>
@@ -394,18 +399,46 @@ const views = {
                     <div class="card-header flex-between">
                         <div class="header-title-group">
                             <h2 class="card-title">Historial de Movimientos</h2>
-                            <span class="badge badge-count">${movimientos.length} registro${movimientos.length !== 1 ? 's' : ''}</span>
+                            <span class="badge badge-count" id="movimientos-count">${movimientos.length} registro${movimientos.length !== 1 ? 's' : ''}</span>
                         </div>
-                        <button class="btn btn-primary" onclick="app.showMovimientoForm()">
-                            + Registrar Movimiento
-                        </button>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="app.generarReporteMovimientos()">
+                                Generar Reporte
+                            </button>
+                            <button class="btn btn-primary" onclick="app.showMovimientoForm()">
+                                + Registrar Movimiento
+                            </button>
+                        </div>
                     </div>
 
                     ${movimientos.length > 0 ? `
-                    <div class="search-bar">
-                        <input type="text" id="search-movimientos" 
-                               placeholder="Buscar por código, bien, tipo..." 
-                               oninput="app.filterMovimientos(this.value)">
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label for="filter-tipo">Tipo:</label>
+                            <select id="filter-tipo" onchange="app.filterMovimientos()">
+                                <option value="">Todos los tipos</option>
+                                ${tiposMovimiento.map(tipo => `
+                                    <option value="${tipo.IdTipoMovimiento}">${tipo.NombreMovimiento}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-fecha-desde">Desde:</label>
+                            <input type="date" id="filter-fecha-desde" onchange="app.filterMovimientos()">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-fecha-hasta">Hasta:</label>
+                            <input type="date" id="filter-fecha-hasta" onchange="app.filterMovimientos()">
+                        </div>
+                        <div class="filter-group">
+                            <label for="search-movimientos">Buscar:</label>
+                            <input type="text" id="search-movimientos" 
+                                   placeholder="Código, bien, usuario..." 
+                                   oninput="app.filterMovimientos()">
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="app.limpiarFiltrosMovimientos()">
+                            Limpiar filtros
+                        </button>
                     </div>
                     ` : ''}
 
@@ -1444,12 +1477,153 @@ class App {
         }
     }
 
-    filterMovimientos(searchTerm) {
+    filterMovimientos() {
+        const tipoFilter = document.getElementById('filter-tipo')?.value || '';
+        const fechaDesde = document.getElementById('filter-fecha-desde')?.value || '';
+        const fechaHasta = document.getElementById('filter-fecha-hasta')?.value || '';
+        const searchTerm = document.getElementById('search-movimientos')?.value?.toLowerCase() || '';
+
         const rows = document.querySelectorAll('#movimientos-table tbody tr');
+        let visibleCount = 0;
+
         rows.forEach(row => {
+            const tipo = row.dataset.tipo;
+            const fecha = row.dataset.fecha ? new Date(row.dataset.fecha) : null;
             const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm.toLowerCase()) ? '' : 'none';
+
+            let show = true;
+
+            // Filtrar por tipo
+            if (tipoFilter && tipo !== tipoFilter) {
+                show = false;
+            }
+
+            // Filtrar por fecha desde
+            if (show && fechaDesde && fecha) {
+                const desde = new Date(fechaDesde);
+                if (fecha < desde) show = false;
+            }
+
+            // Filtrar por fecha hasta
+            if (show && fechaHasta && fecha) {
+                const hasta = new Date(fechaHasta);
+                hasta.setHours(23, 59, 59, 999);
+                if (fecha > hasta) show = false;
+            }
+
+            // Filtrar por texto
+            if (show && searchTerm && !text.includes(searchTerm)) {
+                show = false;
+            }
+
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
         });
+
+        // Actualizar contador
+        const countElement = document.getElementById('movimientos-count');
+        if (countElement) {
+            countElement.textContent = `${visibleCount} registro${visibleCount !== 1 ? 's' : ''}`;
+        }
+    }
+
+    limpiarFiltrosMovimientos() {
+        const tipoFilter = document.getElementById('filter-tipo');
+        const fechaDesde = document.getElementById('filter-fecha-desde');
+        const fechaHasta = document.getElementById('filter-fecha-hasta');
+        const searchInput = document.getElementById('search-movimientos');
+
+        if (tipoFilter) tipoFilter.value = '';
+        if (fechaDesde) fechaDesde.value = '';
+        if (fechaHasta) fechaHasta.value = '';
+        if (searchInput) searchInput.value = '';
+
+        this.filterMovimientos();
+    }
+
+    generarReporteMovimientos() {
+        const rows = document.querySelectorAll('#movimientos-table tbody tr');
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+
+        if (visibleRows.length === 0) {
+            showToast('No hay movimientos para generar el reporte', 'warning');
+            return;
+        }
+
+        // Obtener filtros aplicados
+        const tipoFilter = document.getElementById('filter-tipo');
+        const fechaDesde = document.getElementById('filter-fecha-desde')?.value || '';
+        const fechaHasta = document.getElementById('filter-fecha-hasta')?.value || '';
+        const tipoNombre = tipoFilter?.options[tipoFilter.selectedIndex]?.text || 'Todos';
+
+        // Crear contenido del reporte
+        let reportContent = `
+            <html>
+            <head>
+                <title>Reporte de Movimientos</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #1a1a2e; text-align: center; }
+                    .info { margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+                    .info p { margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                    th { background-color: #4361ee; color: white; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+                    @media print {
+                        body { padding: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Reporte de Movimientos</h1>
+                <div class="info">
+                    <p><strong>Fecha de generación:</strong> ${new Date().toLocaleString('es-PE')}</p>
+                    <p><strong>Tipo de movimiento:</strong> ${tipoNombre}</p>
+                    ${fechaDesde ? `<p><strong>Desde:</strong> ${fechaDesde}</p>` : ''}
+                    ${fechaHasta ? `<p><strong>Hasta:</strong> ${fechaHasta}</p>` : ''}
+                    <p><strong>Total de registros:</strong> ${visibleRows.length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Código Patrimonial</th>
+                            <th>Bien</th>
+                            <th>Tipo Movimiento</th>
+                            <th>Usuario</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        visibleRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            reportContent += '<tr>';
+            cells.forEach(cell => {
+                reportContent += `<td>${cell.textContent}</td>`;
+            });
+            reportContent += '</tr>';
+        });
+
+        reportContent += `
+                    </tbody>
+                </table>
+                <div class="footer">
+                    <p>Sistema de Inventario Institucional</p>
+                </div>
+                <script>window.print();</script>
+            </body>
+            </html>
+        `;
+
+        // Abrir ventana de impresión
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(reportContent);
+        printWindow.document.close();
     }
 
     async viewBien(id) {
