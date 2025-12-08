@@ -2,7 +2,7 @@
 // SERVICE WORKER - PWA Offline Support
 // ============================================
 
-const CACHE_NAME = 'inventario-v17';
+const CACHE_NAME = 'inventario-v18';
 const urlsToCache = [
     '/',
     '/index.html',

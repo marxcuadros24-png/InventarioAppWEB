@@ -42,13 +42,59 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Obtener un bien por ID
+// Obtener un bien por ID (incluye IDs para edición)
 router.get('/:id', async (req, res) => {
     try {
         const pool = await getConnection();
         const result = await pool.request()
             .input('id', sql.Int, req.params.id)
-            .query('SELECT * FROM vw_BienesDetallado WHERE IdBien = @id');
+            .query(`
+                SELECT 
+                    b.IdBien,
+                    b.CodigoPatrimonial,
+                    b.Nombre AS Bien,
+                    b.Modelo,
+                    b.Observacion,
+                    -- IDs para edición
+                    b.IdCategoria,
+                    b.IdMarca,
+                    b.IdEstado,
+                    b.IdArea,
+                    b.IdResponsable,
+                    b.IdAdquisicion,
+                    b.IdEspecificacion,
+                    -- Nombres para visualización
+                    c.NombreCategoria AS Categoria,
+                    c.IdTipoBien,
+                    tb.NombreTipo AS TipoBien,
+                    m.NombreMarca AS Marca,
+                    e.NombreEstado AS Estado,
+                    a.Nombre AS Area,
+                    CONCAT(r.Nombres, ' ', r.Apellidos) AS Responsable,
+                    -- Datos de Adquisición
+                    ad.FechaAdquisicion,
+                    ad.Costo,
+                    ad.Proveedor,
+                    ad.IdMetodo,
+                    ma.NombreMetodo AS MetodoAdquisicion,
+                    -- Especificaciones técnicas
+                    et.Procesador,
+                    et.Memoria,
+                    et.Almacenamiento,
+                    et.Pantalla,
+                    et.Otros
+                FROM Bien b
+                LEFT JOIN Categoria c ON b.IdCategoria = c.IdCategoria
+                LEFT JOIN TipoBien tb ON c.IdTipoBien = tb.IdTipoBien
+                LEFT JOIN Marca m ON b.IdMarca = m.IdMarca
+                LEFT JOIN Estado e ON b.IdEstado = e.IdEstado
+                LEFT JOIN Area a ON b.IdArea = a.IdArea
+                LEFT JOIN Responsable r ON b.IdResponsable = r.IdResponsable
+                LEFT JOIN Adquisicion ad ON b.IdAdquisicion = ad.IdAdquisicion
+                LEFT JOIN MetodoAdquisicion ma ON ad.IdMetodo = ma.IdMetodo
+                LEFT JOIN EspecificacionTecnica et ON b.IdEspecificacion = et.IdEspecificacion
+                WHERE b.IdBien = @id
+            `);
 
         if (result.recordset.length === 0) {
             return res.status(404).json({ error: 'Bien no encontrado' });
