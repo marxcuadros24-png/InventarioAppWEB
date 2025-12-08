@@ -1461,6 +1461,64 @@ class App {
         });
     }
 
+    // Enviar formulario de bien
+    async submitBienForm() {
+        try {
+            const form = document.getElementById('bien-form');
+            const formData = new FormData(form);
+
+            // Obtener el ID si es edición
+            const idBien = document.getElementById('bien-modal')?.dataset?.idBien;
+            const isEdit = idBien && idBien !== '';
+
+            // Construir objeto de datos
+            const data = {
+                codigoPatrimonial: formData.get('codigoPatrimonial'),
+                nombre: formData.get('nombre'),
+                idTipoBien: parseInt(formData.get('idTipoBien')) || null,
+                idCategoria: parseInt(formData.get('idCategoria')) || null,
+                idMarca: parseInt(formData.get('idMarca')) || null,
+                modelo: formData.get('modelo') || null,
+                idEstado: parseInt(formData.get('idEstado')) || null,
+                idArea: parseInt(formData.get('idArea')) || null,
+                idResponsable: parseInt(formData.get('idResponsable')) || null,
+                fechaAdquisicion: formData.get('fechaAdquisicion'),
+                costo: parseFloat(formData.get('costo')) || 0,
+                proveedor: formData.get('proveedor') || null,
+                idMetodo: parseInt(formData.get('idMetodo')) || null,
+                procesador: formData.get('procesador') || null,
+                memoria: formData.get('memoria') || null,
+                almacenamiento: formData.get('almacenamiento') || null,
+                pantalla: formData.get('pantalla') || null,
+                otros: formData.get('otros') || null,
+                observacion: formData.get('observacion') || null
+            };
+
+            // Validar datos requeridos
+            if (!data.nombre || !data.idTipoBien || !data.idCategoria || !data.idEstado || !data.idArea) {
+                showToast('Complete todos los campos requeridos', 'error');
+                return;
+            }
+
+            showToast('Guardando...', 'info');
+
+            if (isEdit) {
+                await api.updateBien(parseInt(idBien), data);
+                showToast('Bien actualizado correctamente', 'success');
+            } else {
+                await api.createBien(data);
+                showToast('Bien creado correctamente', 'success');
+            }
+
+            this.closeModal();
+            this.loadView('bienes');
+
+        } catch (error) {
+            console.error('Error al guardar bien:', error);
+            showToast('Error al guardar: ' + error.message, 'error');
+        }
+    }
+
     async showResponsableForm(idResponsable = null) {
         const isEdit = idResponsable !== null;
         const title = isEdit ? 'Editar Responsable' : 'Nuevo Responsable';
