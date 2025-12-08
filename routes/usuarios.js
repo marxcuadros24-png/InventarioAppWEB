@@ -190,15 +190,14 @@ router.get('/roles/all', async (req, res) => {
 // Crear rol
 router.post('/roles', async (req, res) => {
     try {
-        const { nombreRol, descripcion } = req.body;
+        const { nombreRol } = req.body;
         if (!nombreRol || nombreRol.trim() === '') {
             return res.status(400).json({ error: 'El nombre del rol es requerido' });
         }
         const pool = await getConnection();
         const result = await pool.request()
-            .input('nombreRol', sql.NVarChar(50), nombreRol.trim())
-            .input('descripcion', sql.NVarChar(200), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO RolUsuario (NombreRol, Descripcion) OUTPUT INSERTED.IdRol, INSERTED.NombreRol, INSERTED.Descripcion VALUES (@nombreRol, @descripcion)');
+            .input('nombreRol', sql.NVarChar(100), nombreRol.trim())
+            .query('INSERT INTO RolUsuario (NombreRol) OUTPUT INSERTED.IdRol, INSERTED.NombreRol VALUES (@nombreRol)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear rol:', err);
@@ -209,16 +208,15 @@ router.post('/roles', async (req, res) => {
 // Actualizar rol
 router.put('/roles/:id', async (req, res) => {
     try {
-        const { nombreRol, descripcion } = req.body;
+        const { nombreRol } = req.body;
         if (!nombreRol || nombreRol.trim() === '') {
             return res.status(400).json({ error: 'El nombre del rol es requerido' });
         }
         const pool = await getConnection();
         await pool.request()
             .input('id', sql.Int, req.params.id)
-            .input('nombreRol', sql.NVarChar(50), nombreRol.trim())
-            .input('descripcion', sql.NVarChar(200), descripcion ? descripcion.trim() : null)
-            .query('UPDATE RolUsuario SET NombreRol = @nombreRol, Descripcion = @descripcion WHERE IdRol = @id');
+            .input('nombreRol', sql.NVarChar(100), nombreRol.trim())
+            .query('UPDATE RolUsuario SET NombreRol = @nombreRol WHERE IdRol = @id');
         res.json({ message: 'Rol actualizado exitosamente' });
     } catch (err) {
         console.error('Error al actualizar rol:', err);

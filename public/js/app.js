@@ -3143,10 +3143,6 @@ class App {
                         <label for="user-nombreRol">Nombre del Rol *</label>
                         <input type="text" id="user-nombreRol" name="nombreRol" value="${editData?.nombreRol || ''}" required>
                     </div>
-                    <div class="form-group">
-                        <label for="user-descripcion">Descripción</label>
-                        <textarea id="user-descripcion" name="descripcion" rows="2">${editData?.descripcion || ''}</textarea>
-                    </div>
                 `;
                 break;
 
@@ -3261,11 +3257,10 @@ class App {
                 }
                 case 'rol': {
                     const nombreRol = document.getElementById('user-nombreRol').value;
-                    const descripcion = document.getElementById('user-descripcion').value;
                     if (isEdit) {
-                        result = await api.updateRol(id, nombreRol, descripcion);
+                        result = await api.updateRol(id, nombreRol);
                     } else {
-                        result = await api.createRol(nombreRol, descripcion);
+                        result = await api.createRol(nombreRol);
                     }
                     break;
                 }

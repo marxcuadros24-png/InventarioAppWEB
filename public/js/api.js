@@ -207,17 +207,17 @@ class API {
         return await this.request('/usuarios/roles/all');
     }
 
-    async createRol(nombreRol, descripcion) {
+    async createRol(nombreRol) {
         return await this.request('/usuarios/roles', {
             method: 'POST',
-            body: JSON.stringify({ nombreRol, descripcion })
+            body: JSON.stringify({ nombreRol })
         });
     }
 
-    async updateRol(id, nombreRol, descripcion) {
+    async updateRol(id, nombreRol) {
         return await this.request(`/usuarios/roles/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ nombreRol, descripcion })
+            body: JSON.stringify({ nombreRol })
         });
     }
 
