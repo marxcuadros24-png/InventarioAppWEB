@@ -55,7 +55,6 @@ router.get('/:id', async (req, res) => {
                     b.Nombre AS Bien,
                     b.Modelo,
                     b.Observacion,
-                    -- IDs para edición
                     b.IdCategoria,
                     b.IdMarca,
                     b.IdEstado,
@@ -63,21 +62,18 @@ router.get('/:id', async (req, res) => {
                     b.IdResponsable,
                     b.IdAdquisicion,
                     b.IdEspecificacion,
-                    -- Nombres para visualización
-                    c.NombreCategoria AS Categoria,
+                    c.Nombre AS Categoria,
                     c.IdTipoBien,
-                    tb.NombreTipo AS TipoBien,
-                    m.NombreMarca AS Marca,
-                    e.NombreEstado AS Estado,
+                    tb.Nombre AS TipoBien,
+                    m.Nombre AS Marca,
+                    e.Nombre AS Estado,
                     a.Nombre AS Area,
                     CONCAT(r.Nombres, ' ', r.Apellidos) AS Responsable,
-                    -- Datos de Adquisición
                     ad.FechaAdquisicion,
                     ad.Costo,
                     ad.Proveedor,
                     ad.IdMetodo,
                     ma.NombreMetodo AS MetodoAdquisicion,
-                    -- Especificaciones técnicas
                     et.Procesador,
                     et.Memoria,
                     et.Almacenamiento,
