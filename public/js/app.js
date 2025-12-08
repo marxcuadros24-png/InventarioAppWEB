@@ -58,132 +58,74 @@ const views = {
                 null
             );
 
-            return `
-                <div class="grid grid-4">
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <div class="stat-value">${stats.totalBienes}</div>
-                        <div class="stat-label">Total Bienes</div>
+            // Obtener la fecha actual formateada
+            const today = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = today.toLocaleDateString('es-PE', dateOptions);
+
+            // Calcular estadísticas adicionales
+            const operativos = stats.porEstado.find(e => e.estado === 'Operativo')?.cantidad || 0;
+            const enMantenimiento = stats.porEstado.find(e => e.estado === 'Mantenimiento')?.cantidad || 0;
+            const enBaja = stats.porEstado.find(e => e.estado === 'Baja')?.cantidad || 0;
+
+            const dashboardHTML = `
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="quick-stat">
+                        <img src="/assets/icon-package.png" alt="Total Bienes" class="quick-stat-icon-img">
+                        <div class="quick-stat-value">${stats.totalBienes}</div>
+                        <div class="quick-stat-label">Total Bienes</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-value">${formatCurrency(stats.valorTotal)}</div>
-                        <div class="stat-label">Valor Total</div>
+                    <div class="quick-stat">
+                        <img src="/assets/icon-money.png" alt="Valor Total" class="quick-stat-icon-img">
+                        <div class="quick-stat-value">${formatCurrency(stats.valorTotal)}</div>
+                        <div class="quick-stat-label">Valor Total</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-value">${stats.porEstado.find(e => e.estado === 'Operativo')?.cantidad || 0}</div>
-                        <div class="stat-label">Operativos</div>
+                    <div class="quick-stat">
+                        <img src="/assets/icon-check.png" alt="Operativos" class="quick-stat-icon-img">
+                        <div class="quick-stat-value">${operativos}</div>
+                        <div class="quick-stat-label">Operativos</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔧</div>
-                        <div class="stat-value">${stats.porEstado.find(e => e.estado === 'Mantenimiento')?.cantidad || 0}</div>
-                        <div class="stat-label">Mantenimiento</div>
+                    <div class="quick-stat">
+                        <img src="/assets/icon-wrench.png" alt="Mantenimiento" class="quick-stat-icon-img">
+                        <div class="quick-stat-value">${enMantenimiento}</div>
+                        <div class="quick-stat-label">Mantenimiento</div>
                     </div>
                 </div>
 
-                <div class="grid grid-2 mt-1">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">📊 Distribución por Estado</h2>
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <!-- Estado Chart - Doughnut -->
+                    <div class="chart-card chart-animated">
+                        <div class="chart-header">
+                            <h3><img src="/assets/icon-chart.png" alt="" class="chart-header-icon"> Distribución por Estado</h3>
+                            <span class="chart-badge">${stats.porEstado.length} estados</span>
                         </div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Estado</th>
-                                        <th>Cantidad</th>
-                                        <th>Porcentaje</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${stats.porEstado.map(item => {
-                const percentage = ((item.cantidad / stats.totalBienes) * 100).toFixed(1);
-                return `
-                                        <tr>
-                                            <td><strong>${item.estado}</strong></td>
-                                            <td>${item.cantidad}</td>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                    <div style="flex: 1; height: 8px; background: rgba(99, 102, 241, 0.2); border-radius: 4px; overflow: hidden;">
-                                                        <div style="height: 100%; width: ${percentage}%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px;"></div>
-                                                    </div>
-                                                    <span style="min-width: 45px; text-align: right;">${percentage}%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `}).join('')}
-                                </tbody>
-                            </table>
+                        <div class="chart-container chart-pie">
+                            <canvas id="estadoChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">🏢 Top 5 Áreas</h2>
+                    <!-- Áreas Chart - Horizontal Bar -->
+                    <div class="chart-card chart-animated">
+                        <div class="chart-header">
+                            <h3><img src="/assets/icon-building.png" alt="" class="chart-header-icon"> Top 5 Áreas</h3>
+                            <span class="chart-badge">${stats.porArea.length} áreas</span>
                         </div>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Área</th>
-                                        <th>Cantidad</th>
-                                        <th>Porcentaje</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${stats.porArea.slice(0, 5).map(item => {
-                    const percentage = ((item.cantidad / stats.totalBienes) * 100).toFixed(1);
-                    return `
-                                        <tr>
-                                            <td><strong>${item.area}</strong></td>
-                                            <td>${item.cantidad}</td>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                    <div style="flex: 1; height: 8px; background: rgba(139, 92, 246, 0.2); border-radius: 4px; overflow: hidden;">
-                                                        <div style="height: 100%; width: ${percentage}%; background: linear-gradient(90deg, var(--secondary), var(--accent)); border-radius: 4px;"></div>
-                                                    </div>
-                                                    <span style="min-width: 45px; text-align: right;">${percentage}%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `}).join('')}
-                                </tbody>
-                            </table>
+                        <div class="chart-container chart-bar">
+                            <canvas id="areaChart"></canvas>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card mt-1">
-                    <div class="card-header">
-                        <h2 class="card-title">🔄 Últimos Movimientos</h2>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Código</th>
-                                    <th>Bien</th>
-                                    <th>Tipo</th>
-                                    <th>Usuario</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${stats.ultimosMovimientos.map(mov => `
-                                    <tr>
-                                        <td>${formatDate(mov.FechaMovimiento)}</td>
-                                        <td><strong>${mov.CodigoPatrimonial}</strong></td>
-                                        <td>${mov.bien}</td>
-                                        <td><span style="padding: 0.25rem 0.75rem; background: rgba(99, 102, 241, 0.2); border-radius: 0.375rem; font-size: 0.875rem;">${mov.tipo}</span></td>
-                                        <td>${mov.usuario}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             `;
+
+            // Render HTML first
+            setTimeout(() => {
+                // Initialize Charts after DOM is ready
+                initDashboardCharts(stats);
+            }, 100);
+
+            return dashboardHTML;
         } catch (error) {
             console.error('Error al cargar dashboard:', error);
             return '<div class="card"><p>Error al cargar estadísticas</p></div>';
@@ -3097,6 +3039,340 @@ class App {
             showToast(error.message || 'Error al guardar', 'error');
         }
     }
+}
+
+// === CHART.JS DASHBOARD INITIALIZATION ===
+// Store chart instances to destroy them before re-creating
+let estadoChartInstance = null;
+let areaChartInstance = null;
+
+// Color palette for charts - premium gradient colors (12 distinct colors)
+const chartColors = {
+    // Solid colors
+    emerald: 'rgba(16, 185, 129, 1)',       // Green - Operativo
+    sky: 'rgba(14, 165, 233, 1)',           // Light Blue - Disponible
+    amber: 'rgba(245, 158, 11, 1)',         // Amber - En Mantenimiento  
+    rose: 'rgba(244, 63, 94, 1)',           // Rose - Baja
+    violet: 'rgba(139, 92, 246, 1)',        // Violet - Asignado
+    indigo: 'rgba(99, 102, 241, 1)',        // Indigo - En Almacén
+    cyan: 'rgba(6, 182, 212, 1)',           // Cyan - Inoperativo
+    orange: 'rgba(249, 115, 22, 1)',        // Orange - Extraviado
+    pink: 'rgba(236, 72, 153, 1)',          // Pink - Dañado
+    slate: 'rgba(100, 116, 139, 1)',        // Slate - Obsoleto
+    lime: 'rgba(132, 204, 22, 1)',          // Lime - Pendiente de Baja
+    teal: 'rgba(20, 184, 166, 1)',          // Teal - Extra
+
+    // Background versions (with transparency)
+    emeraldBg: 'rgba(16, 185, 129, 0.85)',
+    skyBg: 'rgba(14, 165, 233, 0.85)',
+    amberBg: 'rgba(245, 158, 11, 0.85)',
+    roseBg: 'rgba(244, 63, 94, 0.85)',
+    violetBg: 'rgba(139, 92, 246, 0.85)',
+    indigoBg: 'rgba(99, 102, 241, 0.85)',
+    cyanBg: 'rgba(6, 182, 212, 0.85)',
+    orangeBg: 'rgba(249, 115, 22, 0.85)',
+    pinkBg: 'rgba(236, 72, 153, 0.85)',
+    slateBg: 'rgba(100, 116, 139, 0.85)',
+    limeBg: 'rgba(132, 204, 22, 0.85)',
+    tealBg: 'rgba(20, 184, 166, 0.85)'
+};
+
+// Color array for doughnut chart - 12 distinct colors
+const doughnutColors = [
+    chartColors.emeraldBg,  // Operativo - Green
+    chartColors.skyBg,      // Disponible - Light Blue
+    chartColors.cyanBg,     // Inoperativo - Cyan
+    chartColors.violetBg,   // Asignado - Violet
+    chartColors.indigoBg,   // En Almacén - Indigo
+    chartColors.amberBg,    // En Mantenimiento - Amber
+    chartColors.orangeBg,   // Extraviado - Orange
+    chartColors.pinkBg,     // Dañado - Pink
+    chartColors.slateBg,    // Obsoleto - Slate
+    chartColors.roseBg,     // Pendiente de Baja - Rose
+    chartColors.limeBg,     // Extra 1 - Lime
+    chartColors.tealBg      // Extra 2 - Teal
+];
+
+const barColors = [
+    chartColors.indigoBg,
+    chartColors.violetBg,
+    chartColors.pinkBg,
+    chartColors.skyBg,
+    chartColors.tealBg
+];
+
+// Estado to color mapping - specific colors for each known estado
+const estadoColorMap = {
+    'operativo': chartColors.emeraldBg,
+    'disponible': chartColors.skyBg,
+    'inoperativo': chartColors.cyanBg,
+    'asignado': chartColors.violetBg,
+    'almacen': chartColors.indigoBg,
+    'en almacén': chartColors.indigoBg,
+    'mantenimiento': chartColors.amberBg,
+    'en mantenimiento': chartColors.amberBg,
+    'extraviado': chartColors.orangeBg,
+    'dañado': chartColors.pinkBg,
+    'obsoleto': chartColors.slateBg,
+    'baja': chartColors.roseBg,
+    'pendiente de baja': chartColors.limeBg,
+    'pendiente': chartColors.limeBg
+};
+
+function getEstadoColor(estado, index) {
+    const estadoLower = estado.toLowerCase().trim();
+
+    // First try exact match
+    if (estadoColorMap[estadoLower]) {
+        return estadoColorMap[estadoLower];
+    }
+
+    // Then try partial match
+    for (const [key, color] of Object.entries(estadoColorMap)) {
+        if (estadoLower.includes(key) || key.includes(estadoLower)) {
+            return color;
+        }
+    }
+
+    // Fallback to array color by index
+    return doughnutColors[index % doughnutColors.length];
+}
+
+function initDashboardCharts(stats) {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded yet');
+        return;
+    }
+
+    // Configure Chart.js defaults for dark theme
+    Chart.defaults.color = 'rgba(203, 213, 225, 1)'; // text-secondary
+    Chart.defaults.borderColor = 'rgba(51, 65, 85, 0.5)'; // border color
+    Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
+    // Initialize Estado Chart (Doughnut)
+    initEstadoChart(stats.porEstado, stats.totalBienes);
+
+    // Initialize Area Chart (Horizontal Bar)
+    initAreaChart(stats.porArea);
+}
+
+function initEstadoChart(porEstado, totalBienes) {
+    const canvas = document.getElementById('estadoChart');
+    if (!canvas) return;
+
+    // Destroy existing chart if exists
+    if (estadoChartInstance) {
+        estadoChartInstance.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    // Prepare data
+    const labels = porEstado.map(item => item.estado);
+    const data = porEstado.map(item => item.cantidad);
+    const backgroundColors = porEstado.map((item, index) => getEstadoColor(item.estado, index));
+
+    estadoChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: 'rgba(30, 41, 59, 1)',
+                borderWidth: 3,
+                hoverBorderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '55%',
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'right',
+                    align: 'center',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            size: 11,
+                            weight: '500'
+                        },
+                        boxWidth: 12,
+                        generateLabels: function (chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const percentage = totalBienes > 0 ? ((value / totalBienes) * 100).toFixed(0) : 0;
+                                    return {
+                                        text: `${label} (${value})`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor,
+                                        lineWidth: 0,
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(99, 102, 241, 0.5)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        label: function (context) {
+                            const value = context.raw;
+                            const percentage = totalBienes > 0 ? ((value / totalBienes) * 100).toFixed(1) : 0;
+                            return ` ${context.label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 800,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
+}
+
+function initAreaChart(porArea) {
+    const canvas = document.getElementById('areaChart');
+    if (!canvas) return;
+
+    // Destroy existing chart if exists
+    if (areaChartInstance) {
+        areaChartInstance.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    // Get top 5 areas
+    const top5 = porArea.slice(0, 5);
+    const labels = top5.map(item => {
+        // Truncate long names
+        const name = item.area || 'Sin área';
+        return name.length > 20 ? name.substring(0, 20) + '...' : name;
+    });
+    const data = top5.map(item => item.cantidad);
+
+    // Create gradient for each bar
+    const gradients = top5.map((_, index) => {
+        const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+        const colors = [
+            [chartColors.indigo, chartColors.violet],
+            [chartColors.violet, chartColors.pink],
+            [chartColors.pink, chartColors.sky],
+            [chartColors.sky, chartColors.cyan],
+            [chartColors.cyan, chartColors.emerald]
+        ];
+        const [start, end] = colors[index % colors.length];
+        gradient.addColorStop(0, start);
+        gradient.addColorStop(1, end);
+        return gradient;
+    });
+
+    areaChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Cantidad de Bienes',
+                data: data,
+                backgroundColor: gradients,
+                borderColor: 'transparent',
+                borderWidth: 0,
+                borderRadius: 6,
+                borderSkipped: false,
+                barThickness: 30,
+                maxBarThickness: 40
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(99, 102, 241, 0.5)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        title: function (context) {
+                            // Show full area name in tooltip
+                            const index = context[0].dataIndex;
+                            return top5[index]?.area || 'Sin área';
+                        },
+                        label: function (context) {
+                            return ` Bienes: ${context.raw}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(51, 65, 85, 0.3)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: 'rgba(148, 163, 184, 1)',
+                        font: {
+                            size: 11
+                        },
+                        stepSize: Math.ceil(Math.max(...data) / 5)
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: 'rgba(203, 213, 225, 1)',
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        },
+                        padding: 10
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
 }
 
 // Inicializar aplicación
