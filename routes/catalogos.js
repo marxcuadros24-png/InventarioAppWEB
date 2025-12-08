@@ -124,15 +124,14 @@ router.get('/estados', async (req, res) => {
 
 router.post('/estados', async (req, res) => {
     try {
-        const { nombre, descripcion } = req.body;
+        const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
         const pool = await getConnection();
         const result = await pool.request()
             .input('nombre', sql.NVarChar(50), nombre.trim())
-            .input('descripcion', sql.NVarChar(200), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO Estado (Nombre, Descripcion) OUTPUT INSERTED.IdEstado, INSERTED.Nombre, INSERTED.Descripcion VALUES (@nombre, @descripcion)');
+            .query('INSERT INTO Estado (Nombre) OUTPUT INSERTED.IdEstado, INSERTED.Nombre VALUES (@nombre)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear estado:', err);
@@ -142,7 +141,7 @@ router.post('/estados', async (req, res) => {
 
 router.put('/estados/:id', async (req, res) => {
     try {
-        const { nombre, descripcion } = req.body;
+        const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
@@ -150,8 +149,7 @@ router.put('/estados/:id', async (req, res) => {
         await pool.request()
             .input('id', sql.Int, req.params.id)
             .input('nombre', sql.NVarChar(50), nombre.trim())
-            .input('descripcion', sql.NVarChar(200), descripcion ? descripcion.trim() : null)
-            .query('UPDATE Estado SET Nombre = @nombre, Descripcion = @descripcion WHERE IdEstado = @id');
+            .query('UPDATE Estado SET Nombre = @nombre WHERE IdEstado = @id');
         res.json({ message: 'Estado actualizado exitosamente' });
     } catch (err) {
         console.error('Error al actualizar estado:', err);
@@ -196,15 +194,14 @@ router.get('/tipos-bien', async (req, res) => {
 
 router.post('/tipos-bien', async (req, res) => {
     try {
-        const { nombre, descripcion } = req.body;
+        const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
         const pool = await getConnection();
         const result = await pool.request()
             .input('nombre', sql.NVarChar(100), nombre.trim())
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO TipoBien (Nombre, Descripcion) OUTPUT INSERTED.IdTipoBien, INSERTED.Nombre, INSERTED.Descripcion VALUES (@nombre, @descripcion)');
+            .query('INSERT INTO TipoBien (Nombre) OUTPUT INSERTED.IdTipoBien, INSERTED.Nombre VALUES (@nombre)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear tipo de bien:', err);
@@ -214,7 +211,7 @@ router.post('/tipos-bien', async (req, res) => {
 
 router.put('/tipos-bien/:id', async (req, res) => {
     try {
-        const { nombre, descripcion } = req.body;
+        const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
@@ -222,8 +219,7 @@ router.put('/tipos-bien/:id', async (req, res) => {
         await pool.request()
             .input('id', sql.Int, req.params.id)
             .input('nombre', sql.NVarChar(100), nombre.trim())
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('UPDATE TipoBien SET Nombre = @nombre, Descripcion = @descripcion WHERE IdTipoBien = @id');
+            .query('UPDATE TipoBien SET Nombre = @nombre WHERE IdTipoBien = @id');
         res.json({ message: 'Tipo de bien actualizado exitosamente' });
     } catch (err) {
         console.error('Error al actualizar tipo de bien:', err);
@@ -283,7 +279,7 @@ router.get('/categorias/:idTipoBien', async (req, res) => {
 
 router.post('/categorias', async (req, res) => {
     try {
-        const { nombre, idTipoBien, descripcion } = req.body;
+        const { nombre, idTipoBien } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
@@ -294,8 +290,7 @@ router.post('/categorias', async (req, res) => {
         const result = await pool.request()
             .input('nombre', sql.NVarChar(100), nombre.trim())
             .input('idTipoBien', sql.Int, idTipoBien)
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO Categoria (Nombre, IdTipoBien, Descripcion) OUTPUT INSERTED.IdCategoria, INSERTED.Nombre, INSERTED.IdTipoBien, INSERTED.Descripcion VALUES (@nombre, @idTipoBien, @descripcion)');
+            .query('INSERT INTO Categoria (Nombre, IdTipoBien) OUTPUT INSERTED.IdCategoria, INSERTED.Nombre, INSERTED.IdTipoBien VALUES (@nombre, @idTipoBien)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear categoría:', err);
@@ -305,7 +300,7 @@ router.post('/categorias', async (req, res) => {
 
 router.put('/categorias/:id', async (req, res) => {
     try {
-        const { nombre, idTipoBien, descripcion } = req.body;
+        const { nombre, idTipoBien } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
@@ -314,8 +309,7 @@ router.put('/categorias/:id', async (req, res) => {
             .input('id', sql.Int, req.params.id)
             .input('nombre', sql.NVarChar(100), nombre.trim())
             .input('idTipoBien', sql.Int, idTipoBien)
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('UPDATE Categoria SET Nombre = @nombre, IdTipoBien = @idTipoBien, Descripcion = @descripcion WHERE IdCategoria = @id');
+            .query('UPDATE Categoria SET Nombre = @nombre, IdTipoBien = @idTipoBien WHERE IdCategoria = @id');
         res.json({ message: 'Categoría actualizada exitosamente' });
     } catch (err) {
         console.error('Error al actualizar categoría:', err);
@@ -360,16 +354,14 @@ router.get('/areas', async (req, res) => {
 
 router.post('/areas', async (req, res) => {
     try {
-        const { nombre, ubicacion, descripcion } = req.body;
+        const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
         const pool = await getConnection();
         const result = await pool.request()
-            .input('nombre', sql.NVarChar(100), nombre.trim())
-            .input('ubicacion', sql.NVarChar(200), ubicacion ? ubicacion.trim() : null)
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO Area (Nombre, Ubicacion, Descripcion) OUTPUT INSERTED.IdArea, INSERTED.Nombre, INSERTED.Ubicacion, INSERTED.Descripcion VALUES (@nombre, @ubicacion, @descripcion)');
+            .input('nombre', sql.NVarChar(150), nombre.trim())
+            .query('INSERT INTO Area (Nombre) OUTPUT INSERTED.IdArea, INSERTED.Nombre VALUES (@nombre)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear área:', err);
@@ -379,17 +371,15 @@ router.post('/areas', async (req, res) => {
 
 router.put('/areas/:id', async (req, res) => {
     try {
-        const { nombre, ubicacion, descripcion } = req.body;
+        const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
         const pool = await getConnection();
         await pool.request()
             .input('id', sql.Int, req.params.id)
-            .input('nombre', sql.NVarChar(100), nombre.trim())
-            .input('ubicacion', sql.NVarChar(200), ubicacion ? ubicacion.trim() : null)
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('UPDATE Area SET Nombre = @nombre, Ubicacion = @ubicacion, Descripcion = @descripcion WHERE IdArea = @id');
+            .input('nombre', sql.NVarChar(150), nombre.trim())
+            .query('UPDATE Area SET Nombre = @nombre WHERE IdArea = @id');
         res.json({ message: 'Área actualizada exitosamente' });
     } catch (err) {
         console.error('Error al actualizar área:', err);
@@ -443,15 +433,14 @@ router.get('/metodos', async (req, res) => {
 
 router.post('/metodos', async (req, res) => {
     try {
-        const { nombreMetodo, descripcion } = req.body;
+        const { nombreMetodo } = req.body;
         if (!nombreMetodo || nombreMetodo.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
         const pool = await getConnection();
         const result = await pool.request()
             .input('nombre', sql.NVarChar(100), nombreMetodo.trim())
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('INSERT INTO MetodoAdquisicion (NombreMetodo, Descripcion) OUTPUT INSERTED.IdMetodo, INSERTED.NombreMetodo, INSERTED.Descripcion VALUES (@nombre, @descripcion)');
+            .query('INSERT INTO MetodoAdquisicion (NombreMetodo) OUTPUT INSERTED.IdMetodo, INSERTED.NombreMetodo VALUES (@nombre)');
         res.json(result.recordset[0]);
     } catch (err) {
         console.error('Error al crear método:', err);
@@ -461,7 +450,7 @@ router.post('/metodos', async (req, res) => {
 
 router.put('/metodos/:id', async (req, res) => {
     try {
-        const { nombreMetodo, descripcion } = req.body;
+        const { nombreMetodo } = req.body;
         if (!nombreMetodo || nombreMetodo.trim() === '') {
             return res.status(400).json({ error: 'El nombre es requerido' });
         }
@@ -469,8 +458,7 @@ router.put('/metodos/:id', async (req, res) => {
         await pool.request()
             .input('id', sql.Int, req.params.id)
             .input('nombre', sql.NVarChar(100), nombreMetodo.trim())
-            .input('descripcion', sql.NVarChar(300), descripcion ? descripcion.trim() : null)
-            .query('UPDATE MetodoAdquisicion SET NombreMetodo = @nombre, Descripcion = @descripcion WHERE IdMetodo = @id');
+            .query('UPDATE MetodoAdquisicion SET NombreMetodo = @nombre WHERE IdMetodo = @id');
         res.json({ message: 'Método actualizado exitosamente' });
     } catch (err) {
         console.error('Error al actualizar método:', err);
