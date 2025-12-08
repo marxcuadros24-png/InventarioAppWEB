@@ -1068,6 +1068,9 @@ class App {
         // Mostrar app
         this.showApp();
 
+        // Aplicar permisos al menú lateral
+        this.aplicarPermisosMenu();
+
         // Sincronizar datos iniciales
         await syncManager.syncFromServer();
 
@@ -1076,6 +1079,27 @@ class App {
 
         // Setup event listeners
         this.setupEventListeners();
+    }
+
+    // Aplicar permisos al menú lateral (ocultar opciones según rol)
+    aplicarPermisosMenu() {
+        permisos.init();
+
+        // Mapeo de vistas a elementos del menú
+        const menuModulos = ['catalogos', 'usuarios', 'auditoria'];
+
+        menuModulos.forEach(modulo => {
+            const menuItem = document.querySelector(`.nav-item[data-view="${modulo}"]`);
+            if (menuItem) {
+                if (puedeVer(modulo)) {
+                    menuItem.style.display = '';
+                } else {
+                    menuItem.style.display = 'none';
+                }
+            }
+        });
+
+        console.log(`🔐 Menú configurado para rol: ${getRolActual()}`);
     }
 
     showLogin() {
@@ -1135,6 +1159,16 @@ class App {
     }
 
     async loadView(viewName) {
+        // Verificar si el usuario puede ver esta vista
+        if (!puedeVer(viewName)) {
+            showToast('No tiene permisos para acceder a esta sección', 'error');
+            // Redirigir al dashboard si no tiene permiso
+            if (viewName !== 'dashboard') {
+                this.loadView('dashboard');
+            }
+            return;
+        }
+
         this.currentView = viewName;
 
         // Actualizar navegación activa
@@ -1162,9 +1196,64 @@ class App {
         try {
             const html = await views[viewName]();
             content.innerHTML = html;
+
+            // Aplicar permisos a los botones después de cargar el contenido
+            this.aplicarPermisosVista(viewName);
         } catch (error) {
             console.error('Error al cargar vista:', error);
             content.innerHTML = '<div class="card"><p>Error al cargar la vista</p></div>';
+        }
+    }
+
+    // Aplicar permisos específicos a la vista actual
+    aplicarPermisosVista(viewName) {
+        const modulo = viewName;
+
+        // Ocultar botones de crear si no tiene permiso
+        if (!puedeCrear(modulo)) {
+            document.querySelectorAll('.btn-nuevo, [onclick*="showBienForm()"], [onclick*="showResponsableForm()"]').forEach(btn => {
+                btn.style.display = 'none';
+            });
+        }
+
+        // Ocultar botones de editar si no tiene permiso
+        if (!puedeEditar(modulo)) {
+            document.querySelectorAll('.btn-editar, [onclick*="editBien"], [onclick*="editResponsable"], [onclick*="editCatalogItem"]').forEach(btn => {
+                btn.style.display = 'none';
+            });
+        }
+
+        // Ocultar botones de eliminar si no tiene permiso
+        if (!puedeEliminar(modulo)) {
+            document.querySelectorAll('.btn-eliminar, .btn-danger, [onclick*="deleteBien"], [onclick*="deleteResponsable"], [onclick*="deleteCatalogItem"]').forEach(btn => {
+                // Solo ocultar si es un botón de eliminar, no todos los btn-danger
+                if (btn.textContent.toLowerCase().includes('eliminar') ||
+                    btn.onclick?.toString().includes('delete')) {
+                    btn.style.display = 'none';
+                }
+            });
+        }
+
+        // Mostrar indicador de rol en el header
+        this.mostrarIndicadorRol();
+    }
+
+    // Mostrar el rol actual en la interfaz
+    mostrarIndicadorRol() {
+        const rol = getRolActual();
+        const indicator = document.getElementById('rol-indicator');
+
+        if (!indicator) {
+            const headerRight = document.querySelector('.header-right');
+            if (headerRight) {
+                const rolBadge = document.createElement('span');
+                rolBadge.id = 'rol-indicator';
+                rolBadge.className = 'rol-badge';
+                rolBadge.innerHTML = `<i class="icon">👤</i> ${rol}`;
+                headerRight.insertBefore(rolBadge, headerRight.firstChild);
+            }
+        } else {
+            indicator.innerHTML = `<i class="icon">👤</i> ${rol}`;
         }
     }
 

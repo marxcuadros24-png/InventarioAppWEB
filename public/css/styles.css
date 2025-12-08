@@ -1598,3 +1598,37 @@ tr:hover {
         font-size: var(--font-size-xl);
     }
 }
+
+/* === ROL BADGE === */
+.rol-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border-radius: var(--radius-xl);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-md);
+    margin-right: var(--spacing-md);
+}
+
+.rol-badge .icon {
+    font-size: 1rem;
+}
+
+/* Colores especiales por rol */
+.rol-badge.administrador {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.rol-badge.supervisor {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.rol-badge.consultor {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
