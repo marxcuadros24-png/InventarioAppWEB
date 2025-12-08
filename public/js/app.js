@@ -1189,6 +1189,9 @@ class App {
                 api.getResponsables()
             ]);
 
+            // Obtener datos del bien si estamos editando
+            const bienData = this.currentBienData;
+
             // Llenar Tipos de Bien
             const tiposBien = catalogos.tipoBien || [];
             const selectTipoBien = document.getElementById('idTipoBien');
@@ -1197,6 +1200,9 @@ class App {
                     const option = document.createElement('option');
                     option.value = tipo.IdTipoBien;
                     option.textContent = tipo.Nombre;
+                    if (bienData && bienData.IdTipoBien == tipo.IdTipoBien) {
+                        option.selected = true;
+                    }
                     selectTipoBien.appendChild(option);
                 });
             }
@@ -1209,6 +1215,9 @@ class App {
                     const option = document.createElement('option');
                     option.value = marca.IdMarca;
                     option.textContent = marca.Nombre;
+                    if (bienData && bienData.IdMarca == marca.IdMarca) {
+                        option.selected = true;
+                    }
                     selectMarca.appendChild(option);
                 });
             }
@@ -1221,6 +1230,9 @@ class App {
                     const option = document.createElement('option');
                     option.value = estado.IdEstado;
                     option.textContent = estado.Nombre;
+                    if (bienData && bienData.IdEstado == estado.IdEstado) {
+                        option.selected = true;
+                    }
                     selectEstado.appendChild(option);
                 });
             }
@@ -1233,6 +1245,9 @@ class App {
                     const option = document.createElement('option');
                     option.value = area.IdArea;
                     option.textContent = area.Nombre;
+                    if (bienData && bienData.IdArea == area.IdArea) {
+                        option.selected = true;
+                    }
                     selectArea.appendChild(option);
                 });
             }
@@ -1244,6 +1259,9 @@ class App {
                     const option = document.createElement('option');
                     option.value = resp.IdResponsable;
                     option.textContent = resp.NombreCompleto || `${resp.Nombres} ${resp.Apellidos}`;
+                    if (bienData && bienData.IdResponsable == resp.IdResponsable) {
+                        option.selected = true;
+                    }
                     selectResponsable.appendChild(option);
                 });
             }
@@ -1256,12 +1274,49 @@ class App {
                     const option = document.createElement('option');
                     option.value = metodo.IdMetodo;
                     option.textContent = metodo.NombreMetodo || metodo.Nombre;
+                    if (bienData && bienData.IdMetodo == metodo.IdMetodo) {
+                        option.selected = true;
+                    }
                     selectMetodo.appendChild(option);
                 });
             }
 
             // Guardar categorías para filtrar después
             this.categorias = catalogos.categorias || [];
+
+            // Si es edición, cargar las categorías del tipo seleccionado
+            if (bienData && bienData.IdTipoBien) {
+                this.filterCategoriasByTipo(bienData.IdTipoBien, bienData.IdCategoria);
+            }
+
+            // Cargar otros campos si es edición
+            if (bienData) {
+                // Fecha de adquisición
+                const fechaInput = document.getElementById('fechaAdquisicion');
+                if (fechaInput && bienData.FechaAdquisicion) {
+                    fechaInput.value = bienData.FechaAdquisicion.split('T')[0];
+                }
+
+                // Costo
+                const costoInput = document.getElementById('costo');
+                if (costoInput && bienData.Costo) {
+                    costoInput.value = bienData.Costo;
+                }
+
+                // Proveedor
+                const proveedorInput = document.getElementById('proveedor');
+                if (proveedorInput && bienData.Proveedor) {
+                    proveedorInput.value = bienData.Proveedor;
+                }
+
+                // Campos técnicos opcionales
+                if (bienData.Procesador) document.getElementById('procesador').value = bienData.Procesador;
+                if (bienData.Memoria) document.getElementById('memoria').value = bienData.Memoria;
+                if (bienData.Almacenamiento) document.getElementById('almacenamiento').value = bienData.Almacenamiento;
+                if (bienData.Pantalla) document.getElementById('pantalla').value = bienData.Pantalla;
+                if (bienData.Otros) document.getElementById('otros').value = bienData.Otros;
+                if (bienData.Observacion) document.getElementById('observacion').value = bienData.Observacion;
+            }
 
         } catch (error) {
             console.error('Error al cargar catálogos del formulario:', error);
@@ -1270,7 +1325,7 @@ class App {
     }
 
     // Filtrar categorías por tipo de bien
-    filterCategoriasByTipo(idTipoBien) {
+    filterCategoriasByTipo(idTipoBien, selectedCategoriaId = null) {
         const selectCategoria = document.getElementById('idCategoria');
         if (!selectCategoria) return;
 
@@ -1286,6 +1341,9 @@ class App {
             const option = document.createElement('option');
             option.value = cat.IdCategoria;
             option.textContent = cat.Nombre;
+            if (selectedCategoriaId && cat.IdCategoria == selectedCategoriaId) {
+                option.selected = true;
+            }
             selectCategoria.appendChild(option);
         });
     }
@@ -1300,8 +1358,13 @@ class App {
         if (!isEdit) {
             const year = new Date().getFullYear();
             const bienes = await api.getBienes();
-            const count = bienes.length + 1;
-            codigoPatrimonial = `BIEN-${year}-${String(count).padStart(4, '0')}`;
+            // Buscar el código más alto del año actual
+            const codigosDelAno = bienes
+                .map(b => b.CodigoPatrimonial)
+                .filter(c => c && c.startsWith(`BIEN-${year}-`))
+                .map(c => parseInt(c.split('-')[2]) || 0);
+            const maxCodigo = codigosDelAno.length > 0 ? Math.max(...codigosDelAno) : 0;
+            codigoPatrimonial = `BIEN-${year}-${String(maxCodigo + 1).padStart(4, '0')}`;
         }
 
         // Cargar datos del bien si es edición
@@ -1311,14 +1374,19 @@ class App {
             codigoPatrimonial = bienData.CodigoPatrimonial;
         }
 
+        // Guardar datos del bien para cargar después los selects
+        this.currentBienData = bienData;
+        this.currentBienId = idBien;
+
         const modalHTML = `
-            <div class="modal-overlay" id="bien-modal">
+            <div class="modal-overlay" id="bien-modal" data-id-bien="${idBien || ''}">
                 <div class="modal-container modal-large">
                     <div class="modal-header">
                         <h2>${title}</h2>
                         <button class="modal-close" onclick="app.closeModal()">&times;</button>
                     </div>
                     <form id="bien-form" class="modal-body">
+                        <input type="hidden" id="idBien" name="idBien" value="${idBien || ''}">
                         <!-- Datos Básicos -->
                         <div class="form-section">
                             <h3 class="form-section-title">Datos Básicos</h3>
