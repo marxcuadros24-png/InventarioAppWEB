@@ -2908,13 +2908,13 @@ class App {
         const type = document.getElementById('catalog-type').value;
         const id = document.getElementById('catalog-id').value;
         const isEdit = id !== '';
+        const nombre = document.getElementById('catalog-nombre').value;
 
         try {
             let result;
 
             switch (type) {
                 case 'marca': {
-                    const nombre = document.getElementById('catalog-nombre').value;
                     if (isEdit) {
                         result = await api.updateMarca(id, nombre);
                     } else {
@@ -2923,62 +2923,51 @@ class App {
                     break;
                 }
                 case 'estado': {
-                    const nombre = document.getElementById('catalog-nombre').value;
-                    const descripcion = document.getElementById('catalog-descripcion').value;
                     if (isEdit) {
-                        result = await api.updateEstado(id, nombre, descripcion);
+                        result = await api.updateEstado(id, nombre);
                     } else {
-                        result = await api.createEstado(nombre, descripcion);
+                        result = await api.createEstado(nombre);
                     }
                     break;
                 }
                 case 'tipoBien': {
-                    const nombre = document.getElementById('catalog-nombre').value;
-                    const descripcion = document.getElementById('catalog-descripcion').value;
                     if (isEdit) {
-                        result = await api.updateTipoBien(id, nombre, descripcion);
+                        result = await api.updateTipoBien(id, nombre);
                     } else {
-                        result = await api.createTipoBien(nombre, descripcion);
+                        result = await api.createTipoBien(nombre);
                     }
                     break;
                 }
                 case 'categoria': {
-                    const nombre = document.getElementById('catalog-nombre').value;
                     const idTipoBien = document.getElementById('catalog-tipoBien').value;
                     if (isEdit) {
-                        result = await api.updateCategoria(id, nombre, idTipoBien, null);
+                        result = await api.updateCategoria(id, nombre, idTipoBien);
                     } else {
                         result = await api.createCategoria(nombre, idTipoBien);
                     }
                     break;
                 }
                 case 'area': {
-                    const nombre = document.getElementById('catalog-nombre').value;
-                    const ubicacion = document.getElementById('catalog-ubicacion').value;
-                    const descripcion = document.getElementById('catalog-descripcion').value;
                     if (isEdit) {
-                        result = await api.updateArea(id, nombre, ubicacion, descripcion);
+                        result = await api.updateArea(id, nombre);
                     } else {
-                        result = await api.createArea(nombre, ubicacion, descripcion);
+                        result = await api.createArea(nombre);
                     }
                     break;
                 }
                 case 'metodo': {
-                    const nombreMetodo = document.getElementById('catalog-nombre').value;
-                    const descripcion = document.getElementById('catalog-descripcion').value;
                     if (isEdit) {
-                        result = await api.updateMetodoAdquisicion(id, nombreMetodo, descripcion);
+                        result = await api.updateMetodoAdquisicion(id, nombre);
                     } else {
-                        result = await api.createMetodoAdquisicion(nombreMetodo, descripcion);
+                        result = await api.createMetodoAdquisicion(nombre);
                     }
                     break;
                 }
                 case 'tipoMovimiento': {
-                    const nombreMovimiento = document.getElementById('catalog-nombre').value;
                     if (isEdit) {
-                        result = await api.updateTipoMovimiento(id, nombreMovimiento);
+                        result = await api.updateTipoMovimiento(id, nombre);
                     } else {
-                        result = await api.createTipoMovimiento(nombreMovimiento);
+                        result = await api.createTipoMovimiento(nombre);
                     }
                     break;
                 }

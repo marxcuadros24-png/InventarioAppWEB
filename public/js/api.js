@@ -286,28 +286,28 @@ class API {
     deleteMarca = (id) => this.marcas.delete(id);
 
     getEstados = () => this.estados.getAll();
-    createEstado = (nombre, descripcion) => this.estados.create({ nombre, descripcion });
-    updateEstado = (id, nombre, descripcion) => this.estados.update(id, { nombre, descripcion });
+    createEstado = (nombre) => this.estados.create({ nombre });
+    updateEstado = (id, nombre) => this.estados.update(id, { nombre });
     deleteEstado = (id) => this.estados.delete(id);
 
     getTiposBien = () => this.tiposBien.getAll();
-    createTipoBien = (nombre, descripcion) => this.tiposBien.create({ nombre, descripcion });
-    updateTipoBien = (id, nombre, descripcion) => this.tiposBien.update(id, { nombre, descripcion });
+    createTipoBien = (nombre) => this.tiposBien.create({ nombre });
+    updateTipoBien = (id, nombre) => this.tiposBien.update(id, { nombre });
     deleteTipoBien = (id) => this.tiposBien.delete(id);
 
     getCategorias = () => this.categorias.getAll();
     createCategoria = (nombre, idTipoBien) => this.categorias.create({ nombre, idTipoBien });
-    updateCategoria = (id, nombre, idTipoBien, descripcion) => this.categorias.update(id, { nombre, idTipoBien, descripcion });
+    updateCategoria = (id, nombre, idTipoBien) => this.categorias.update(id, { nombre, idTipoBien });
     deleteCategoria = (id) => this.categorias.delete(id);
 
     getAreas = () => this.areas.getAll();
-    createArea = (nombre, ubicacion, descripcion) => this.areas.create({ nombre, ubicacion, descripcion });
-    updateArea = (id, nombre, ubicacion, descripcion) => this.areas.update(id, { nombre, ubicacion, descripcion });
+    createArea = (nombre) => this.areas.create({ nombre });
+    updateArea = (id, nombre) => this.areas.update(id, { nombre });
     deleteArea = (id) => this.areas.delete(id);
 
     getMetodosAdquisicion = () => this.metodos.getAll();
-    createMetodoAdquisicion = (nombreMetodo, descripcion) => this.metodos.create({ nombreMetodo, descripcion });
-    updateMetodoAdquisicion = (id, nombreMetodo, descripcion) => this.metodos.update(id, { nombreMetodo, descripcion });
+    createMetodoAdquisicion = (nombreMetodo) => this.metodos.create({ nombreMetodo });
+    updateMetodoAdquisicion = (id, nombreMetodo) => this.metodos.update(id, { nombreMetodo });
     deleteMetodoAdquisicion = (id) => this.metodos.delete(id);
 
     getTiposMovimiento = () => this.tiposMovimiento.getAll();
