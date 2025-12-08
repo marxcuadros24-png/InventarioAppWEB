@@ -68,6 +68,254 @@
     --header-height: 70px;
 }
 
+/* === ENTRY ANIMATIONS === */
+
+/* Fade In Up - Principal */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade In Scale */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Slide In from Left */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Slide In from Right */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Bounce In */
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 5px rgba(99, 102, 241, 0.2);
+    }
+}
+
+/* Animation Classes */
+.animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fadeInScale {
+    animation: fadeInScale 0.5s ease-out forwards;
+}
+
+.animate-slideInLeft {
+    animation: slideInLeft 0.5s ease-out forwards;
+}
+
+.animate-slideInRight {
+    animation: slideInRight 0.5s ease-out forwards;
+}
+
+.animate-bounceIn {
+    animation: bounceIn 0.6s ease-out forwards;
+}
+
+/* Stagger delays for children */
+.stagger-animation>*:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.stagger-animation>*:nth-child(2) {
+    animation-delay: 100ms;
+}
+
+.stagger-animation>*:nth-child(3) {
+    animation-delay: 200ms;
+}
+
+.stagger-animation>*:nth-child(4) {
+    animation-delay: 300ms;
+}
+
+.stagger-animation>*:nth-child(5) {
+    animation-delay: 400ms;
+}
+
+.stagger-animation>*:nth-child(6) {
+    animation-delay: 500ms;
+}
+
+.stagger-animation>*:nth-child(7) {
+    animation-delay: 600ms;
+}
+
+.stagger-animation>*:nth-child(8) {
+    animation-delay: 700ms;
+}
+
+/* Apply animations to specific elements */
+.quick-stats {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.quick-stat {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.quick-stats .quick-stat:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.quick-stats .quick-stat:nth-child(2) {
+    animation-delay: 100ms;
+}
+
+.quick-stats .quick-stat:nth-child(3) {
+    animation-delay: 200ms;
+}
+
+.quick-stats .quick-stat:nth-child(4) {
+    animation-delay: 300ms;
+}
+
+.charts-grid .chart-card {
+    opacity: 0;
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+
+.charts-grid .chart-card:nth-child(1) {
+    animation-delay: 400ms;
+}
+
+.charts-grid .chart-card:nth-child(2) {
+    animation-delay: 550ms;
+}
+
+/* Card animations */
+.card {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out forwards;
+    animation-delay: 100ms;
+}
+
+/* Table row animations */
+.table tbody tr {
+    opacity: 0;
+    animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.table tbody tr:nth-child(1) {
+    animation-delay: 50ms;
+}
+
+.table tbody tr:nth-child(2) {
+    animation-delay: 100ms;
+}
+
+.table tbody tr:nth-child(3) {
+    animation-delay: 150ms;
+}
+
+.table tbody tr:nth-child(4) {
+    animation-delay: 200ms;
+}
+
+.table tbody tr:nth-child(5) {
+    animation-delay: 250ms;
+}
+
+.table tbody tr:nth-child(6) {
+    animation-delay: 300ms;
+}
+
+.table tbody tr:nth-child(7) {
+    animation-delay: 350ms;
+}
+
+.table tbody tr:nth-child(8) {
+    animation-delay: 400ms;
+}
+
+.table tbody tr:nth-child(9) {
+    animation-delay: 450ms;
+}
+
+.table tbody tr:nth-child(10) {
+    animation-delay: 500ms;
+}
+
+.table tbody tr:nth-child(n+11) {
+    animation-delay: 550ms;
+}
+
+/* Modal animations */
+.modal-content {
+    animation: fadeInScale 0.3s ease-out;
+}
+
+/* Page title animation */
+#page-title {
+    animation: slideInLeft 0.4s ease-out;
+}
+
 /* === RESET & BASE === */
 * {
     margin: 0;
@@ -1227,6 +1475,38 @@ tr:hover {
 
 .chart-animated {
     animation: chartFadeIn 0.5s ease-out;
+}
+
+/* === EXPORT CARDS === */
+.export-card {
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.export-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, transparent 50%, rgba(16, 185, 129, 0.1) 50%);
+    border-radius: 0 0 0 100%;
+}
+
+.export-card:hover {
+    border-color: var(--success) !important;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);
+}
+
+.export-card .badge-success {
+    background: linear-gradient(135deg, var(--success), #059669);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 /* === RESPONSIVE === */

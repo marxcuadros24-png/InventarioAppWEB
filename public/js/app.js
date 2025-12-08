@@ -610,6 +610,42 @@ const views = {
                             <p>Registro de acciones con filtros avanzados</p>
                         </div>
                     </div>
+
+                    <!-- Excel Export Section -->
+                    <div class="card-header mt-1" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                        <h2 class="card-title">📊 Exportar a Excel</h2>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Descarga los datos en formato Excel (.xlsx) para análisis offline</p>
+                    
+                    <div class="reports-grid">
+                        <div class="report-card export-card" onclick="exportBienesToExcel()">
+                            <div class="report-icon">📦</div>
+                            <h3>Exportar Bienes</h3>
+                            <p>Todos los bienes con información completa</p>
+                            <span class="badge badge-success">Excel</span>
+                        </div>
+
+                        <div class="report-card export-card" onclick="exportMovimientosToExcel()">
+                            <div class="report-icon">🔄</div>
+                            <h3>Exportar Movimientos</h3>
+                            <p>Historial de transferencias y cambios</p>
+                            <span class="badge badge-success">Excel</span>
+                        </div>
+
+                        <div class="report-card export-card" onclick="exportResponsablesToExcel()">
+                            <div class="report-icon">👥</div>
+                            <h3>Exportar Responsables</h3>
+                            <p>Lista de responsables con datos de contacto</p>
+                            <span class="badge badge-success">Excel</span>
+                        </div>
+
+                        <div class="report-card export-card" onclick="exportReporteCompletoExcel()" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1));">
+                            <div class="report-icon">📈</div>
+                            <h3>Reporte Completo</h3>
+                            <p>Resumen + Bienes + Estados + Áreas (Múltiples hojas)</p>
+                            <span class="badge badge-primary">Completo</span>
+                        </div>
+                    </div>
                 </div>
             `;
         } catch (error) {
