@@ -1,49 +1,173 @@
 // ============================================
 // API CLIENT - Comunicación con Backend
+// Versión 2.0 - Con mejoras de seguridad y arquitectura
 // ============================================
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// === CONFIGURACIÓN DE ENTORNO ===
+// Detectar automáticamente si estamos en desarrollo o producción
+const API_CONFIG = {
+    // En producción, usar URL relativa o definir en variable de entorno
+    baseUrl: window.location.hostname === 'localhost'
+        ? 'http://localhost:3000/api'
+        : `${window.location.origin}/api`,
+    timeout: 30000, // 30 segundos
+    retryAttempts: 1
+};
 
 class API {
     constructor() {
-        // Usar sessionStorage para que la sesión expire al cerrar el navegador
-        this.token = sessionStorage.getItem('token');
+        // Ya no almacenamos el token aquí - lo leemos dinámicamente
+        this._onSessionExpired = null;
     }
 
-    // Headers con autenticación
-    getHeaders() {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
+    // === GESTIÓN DE SESIÓN ===
 
-        if (this.token) {
-            headers['Authorization'] = `Bearer ${this.token}`;
+    // Getter dinámico para el token (Mejora #1 - Token dinámico)
+    get token() {
+        return sessionStorage.getItem('token');
+    }
+
+    // Setter para el token
+    set token(value) {
+        if (value) {
+            sessionStorage.setItem('token', value);
+        } else {
+            sessionStorage.removeItem('token');
+        }
+    }
+
+    // Callback para sesión expirada
+    set onSessionExpired(callback) {
+        this._onSessionExpired = callback;
+    }
+
+    // === HEADERS (Mejora #4 - Soporte FormData) ===
+
+    // Headers con autenticación - ahora soporta FormData
+    getHeaders(isFormData = false) {
+        const headers = {};
+
+        // Solo agregar Content-Type si NO es FormData
+        // FormData establece su propio boundary automáticamente
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        // Leer token dinámicamente (no del constructor)
+        const currentToken = this.token;
+        if (currentToken) {
+            headers['Authorization'] = `Bearer ${currentToken}`;
         }
 
         return headers;
     }
 
-    // Método genérico para hacer requests
+    // === MÉTODO REQUEST MEJORADO (Mejora #2 - Manejo 401) ===
+
     async request(endpoint, options = {}) {
+        const isFormData = options.body instanceof FormData;
+
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+            const response = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
                 ...options,
-                headers: this.getHeaders()
+                headers: {
+                    ...this.getHeaders(isFormData),
+                    ...options.headers // Permite headers personalizados
+                },
+                signal: controller.signal
             });
 
+            clearTimeout(timeoutId);
+
+            // Mejora #2: Interceptar error 401 (sesión expirada)
+            if (response.status === 401) {
+                console.warn('⚠️ Sesión expirada o no autorizado');
+                this.handleSessionExpired();
+                throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+            }
+
+            // Manejar error 403 (forbidden)
+            if (response.status === 403) {
+                throw new Error('No tiene permisos para realizar esta acción.');
+            }
+
+            // Manejar otros errores
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Error en la petición');
+                let errorMessage = 'Error en la petición';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || error.message || errorMessage;
+                } catch {
+                    errorMessage = `Error ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
 
             return await response.json();
         } catch (error) {
+            // Manejar timeout
+            if (error.name === 'AbortError') {
+                throw new Error('La petición tardó demasiado. Intente nuevamente.');
+            }
+
             console.error('API Error:', error);
             throw error;
         }
     }
 
+    // Manejar sesión expirada
+    handleSessionExpired() {
+        // Limpiar datos de sesión
+        this.token = null;
+        sessionStorage.removeItem('usuario');
+
+        // Llamar callback si existe
+        if (this._onSessionExpired) {
+            this._onSessionExpired();
+        } else {
+            // Comportamiento por defecto: recargar para ir al login
+            showToast('Sesión expirada. Redirigiendo al login...', 'warning');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+    }
+
+    // === MÉTODOS CRUD GENÉRICOS (Mejora #3 - Principio DRY) ===
+
+    // Método privado para operaciones CRUD estándar
+    _crud(basePath) {
+        return {
+            getAll: (filtros = {}) => {
+                const params = new URLSearchParams(filtros);
+                const query = params.toString() ? `?${params}` : '';
+                return this.request(`${basePath}${query}`);
+            },
+            getOne: (id) => this.request(`${basePath}/${id}`),
+            create: (data) => this.request(basePath, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            }),
+            update: (id, data) => this.request(`${basePath}/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            }),
+            delete: (id) => this.request(`${basePath}/${id}`, {
+                method: 'DELETE'
+            })
+        };
+    }
+
+    // CRUD helpers para catálogos
+    _catalogCrud(entity) {
+        return this._crud(`/catalogos/${entity}`);
+    }
+
     // === AUTENTICACIÓN ===
+
     async login(nombreUsuario, clave) {
         const data = await this.request('/auth/login', {
             method: 'POST',
@@ -51,7 +175,6 @@ class API {
         });
 
         this.token = data.token;
-        sessionStorage.setItem('token', data.token);
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
 
         return data;
@@ -63,17 +186,11 @@ class API {
 
     logout() {
         this.token = null;
-        sessionStorage.removeItem('token');
         sessionStorage.removeItem('usuario');
     }
 
-    // === AUDITORÍA ===
-    async getAuditoria(filtros = {}) {
-        const params = new URLSearchParams(filtros);
-        return await this.request(`/auditoria?${params}`);
-    }
+    // === CATÁLOGOS (Usando CRUD genérico) ===
 
-    // === CATÁLOGOS ===
     async getCatalogos() {
         return await this.request('/catalogos/all');
     }
@@ -82,326 +199,133 @@ class API {
         return await this.request(`/catalogos/categorias/${idTipoBien}`);
     }
 
-    async createMarca(nombre) {
-        return await this.request('/catalogos/marcas', {
-            method: 'POST',
-            body: JSON.stringify({ nombre })
-        });
-    }
-
-    async createCategoria(nombre, idTipoBien) {
-        return await this.request('/catalogos/categorias', {
-            method: 'POST',
-            body: JSON.stringify({ nombre, idTipoBien })
-        });
-    }
-
-    // === CRUD CATÁLOGOS ===
-
     // Marcas
-    async getMarcas() {
-        return await this.request('/catalogos/marcas');
-    }
-
-    async updateMarca(id, nombre) {
-        return await this.request(`/catalogos/marcas/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombre })
-        });
-    }
-
-    async deleteMarca(id) {
-        return await this.request(`/catalogos/marcas/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getMarcas = () => this._catalogCrud('marcas').getAll();
+    createMarca = (nombre) => this._catalogCrud('marcas').create({ nombre });
+    updateMarca = (id, nombre) => this._catalogCrud('marcas').update(id, { nombre });
+    deleteMarca = (id) => this._catalogCrud('marcas').delete(id);
 
     // Estados
-    async getEstados() {
-        return await this.request('/catalogos/estados');
-    }
-
-    async createEstado(nombre, descripcion) {
-        return await this.request('/catalogos/estados', {
-            method: 'POST',
-            body: JSON.stringify({ nombre, descripcion })
-        });
-    }
-
-    async updateEstado(id, nombre, descripcion) {
-        return await this.request(`/catalogos/estados/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombre, descripcion })
-        });
-    }
-
-    async deleteEstado(id) {
-        return await this.request(`/catalogos/estados/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getEstados = () => this._catalogCrud('estados').getAll();
+    createEstado = (nombre, descripcion) => this._catalogCrud('estados').create({ nombre, descripcion });
+    updateEstado = (id, nombre, descripcion) => this._catalogCrud('estados').update(id, { nombre, descripcion });
+    deleteEstado = (id) => this._catalogCrud('estados').delete(id);
 
     // Tipos de Bien
-    async getTiposBien() {
-        return await this.request('/catalogos/tipos-bien');
-    }
-
-    async createTipoBien(nombre, descripcion) {
-        return await this.request('/catalogos/tipos-bien', {
-            method: 'POST',
-            body: JSON.stringify({ nombre, descripcion })
-        });
-    }
-
-    async updateTipoBien(id, nombre, descripcion) {
-        return await this.request(`/catalogos/tipos-bien/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombre, descripcion })
-        });
-    }
-
-    async deleteTipoBien(id) {
-        return await this.request(`/catalogos/tipos-bien/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getTiposBien = () => this._catalogCrud('tipos-bien').getAll();
+    createTipoBien = (nombre, descripcion) => this._catalogCrud('tipos-bien').create({ nombre, descripcion });
+    updateTipoBien = (id, nombre, descripcion) => this._catalogCrud('tipos-bien').update(id, { nombre, descripcion });
+    deleteTipoBien = (id) => this._catalogCrud('tipos-bien').delete(id);
 
     // Categorías
-    async getCategorias() {
-        return await this.request('/catalogos/categorias');
-    }
-
-    async updateCategoria(id, nombre, idTipoBien, descripcion) {
-        return await this.request(`/catalogos/categorias/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombre, idTipoBien, descripcion })
-        });
-    }
-
-    async deleteCategoria(id) {
-        return await this.request(`/catalogos/categorias/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getCategorias = () => this._catalogCrud('categorias').getAll();
+    createCategoria = (nombre, idTipoBien) => this._catalogCrud('categorias').create({ nombre, idTipoBien });
+    updateCategoria = (id, nombre, idTipoBien, descripcion) => this._catalogCrud('categorias').update(id, { nombre, idTipoBien, descripcion });
+    deleteCategoria = (id) => this._catalogCrud('categorias').delete(id);
 
     // Áreas
-    async getAreas() {
-        return await this.request('/catalogos/areas');
-    }
-
-    async createArea(nombre, ubicacion, descripcion) {
-        return await this.request('/catalogos/areas', {
-            method: 'POST',
-            body: JSON.stringify({ nombre, ubicacion, descripcion })
-        });
-    }
-
-    async updateArea(id, nombre, ubicacion, descripcion) {
-        return await this.request(`/catalogos/areas/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombre, ubicacion, descripcion })
-        });
-    }
-
-    async deleteArea(id) {
-        return await this.request(`/catalogos/areas/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getAreas = () => this._catalogCrud('areas').getAll();
+    createArea = (nombre, ubicacion, descripcion) => this._catalogCrud('areas').create({ nombre, ubicacion, descripcion });
+    updateArea = (id, nombre, ubicacion, descripcion) => this._catalogCrud('areas').update(id, { nombre, ubicacion, descripcion });
+    deleteArea = (id) => this._catalogCrud('areas').delete(id);
 
     // Métodos de Adquisición
-    async getMetodosAdquisicion() {
-        return await this.request('/catalogos/metodos');
-    }
-
-    async createMetodoAdquisicion(nombreMetodo, descripcion) {
-        return await this.request('/catalogos/metodos', {
-            method: 'POST',
-            body: JSON.stringify({ nombreMetodo, descripcion })
-        });
-    }
-
-    async updateMetodoAdquisicion(id, nombreMetodo, descripcion) {
-        return await this.request(`/catalogos/metodos/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombreMetodo, descripcion })
-        });
-    }
-
-    async deleteMetodoAdquisicion(id) {
-        return await this.request(`/catalogos/metodos/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getMetodosAdquisicion = () => this._catalogCrud('metodos').getAll();
+    createMetodoAdquisicion = (nombreMetodo, descripcion) => this._catalogCrud('metodos').create({ nombreMetodo, descripcion });
+    updateMetodoAdquisicion = (id, nombreMetodo, descripcion) => this._catalogCrud('metodos').update(id, { nombreMetodo, descripcion });
+    deleteMetodoAdquisicion = (id) => this._catalogCrud('metodos').delete(id);
 
     // Tipos de Movimiento
-    async getTiposMovimiento() {
-        return await this.request('/catalogos/tipos-movimiento');
-    }
+    getTiposMovimiento = () => this._catalogCrud('tipos-movimiento').getAll();
+    createTipoMovimiento = (nombreMovimiento) => this._catalogCrud('tipos-movimiento').create({ nombreMovimiento });
+    updateTipoMovimiento = (id, nombreMovimiento) => this._catalogCrud('tipos-movimiento').update(id, { nombreMovimiento });
+    deleteTipoMovimiento = (id) => this._catalogCrud('tipos-movimiento').delete(id);
 
-    async createTipoMovimiento(nombreMovimiento) {
-        return await this.request('/catalogos/tipos-movimiento', {
-            method: 'POST',
-            body: JSON.stringify({ nombreMovimiento })
-        });
-    }
+    // === BIENES (Usando CRUD genérico) ===
 
-    async updateTipoMovimiento(id, nombreMovimiento) {
-        return await this.request(`/catalogos/tipos-movimiento/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombreMovimiento })
-        });
-    }
-
-    async deleteTipoMovimiento(id) {
-        return await this.request(`/catalogos/tipos-movimiento/${id}`, {
-            method: 'DELETE'
-        });
-    }
-
-    // === BIENES ===
-    async getBienes(filtros = {}) {
-        const params = new URLSearchParams(filtros);
-        return await this.request(`/bienes?${params}`);
-    }
-
-    async getBien(id) {
-        return await this.request(`/bienes/${id}`);
-    }
-
-    async createBien(data) {
-        return await this.request('/bienes', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async updateBien(id, data) {
-        return await this.request(`/bienes/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async deleteBien(id) {
-        return await this.request(`/bienes/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getBienes = (filtros = {}) => this._crud('/bienes').getAll(filtros);
+    getBien = (id) => this._crud('/bienes').getOne(id);
+    createBien = (data) => this._crud('/bienes').create(data);
+    updateBien = (id, data) => this._crud('/bienes').update(id, data);
+    deleteBien = (id) => this._crud('/bienes').delete(id);
 
     // === RESPONSABLES ===
-    async getResponsables() {
-        return await this.request('/responsables');
-    }
 
-    async getResponsable(id) {
-        return await this.request(`/responsables/${id}`);
-    }
-
-    async createResponsable(data) {
-        return await this.request('/responsables', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async updateResponsable(id, data) {
-        return await this.request(`/responsables/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async deleteResponsable(id) {
-        return await this.request(`/responsables/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getResponsables = () => this._crud('/responsables').getAll();
+    getResponsable = (id) => this._crud('/responsables').getOne(id);
+    createResponsable = (data) => this._crud('/responsables').create(data);
+    updateResponsable = (id, data) => this._crud('/responsables').update(id, data);
+    deleteResponsable = (id) => this._crud('/responsables').delete(id);
 
     // === MOVIMIENTOS ===
-    async getMovimientos(filtros = {}) {
-        const params = new URLSearchParams(filtros);
-        return await this.request(`/movimientos?${params}`);
-    }
 
-    async createMovimiento(data) {
-        return await this.request('/movimientos', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
+    getMovimientos = (filtros = {}) => this._crud('/movimientos').getAll(filtros);
+    createMovimiento = (data) => this._crud('/movimientos').create(data);
 
     // === DASHBOARD ===
+
     async getDashboardStats() {
         return await this.request('/dashboard/stats');
     }
 
     // === AUDITORÍA ===
-    async getAuditoria(filtros = {}) {
-        const params = new URLSearchParams(filtros);
-        return await this.request(`/auditoria?${params}`);
-    }
+
+    getAuditoria = (filtros = {}) => this._crud('/auditoria').getAll(filtros);
 
     // === USUARIOS ===
-    async getUsuarios() {
-        return await this.request('/usuarios');
-    }
 
-    async getUsuario(id) {
-        return await this.request(`/usuarios/${id}`);
-    }
-
-    async createUsuario(data) {
-        return await this.request('/usuarios', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async updateUsuario(id, data) {
-        return await this.request(`/usuarios/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data)
-        });
-    }
-
-    async deleteUsuario(id) {
-        return await this.request(`/usuarios/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getUsuarios = () => this._crud('/usuarios').getAll();
+    getUsuario = (id) => this._crud('/usuarios').getOne(id);
+    createUsuario = (data) => this._crud('/usuarios').create(data);
+    updateUsuario = (id, data) => this._crud('/usuarios').update(id, data);
+    deleteUsuario = (id) => this._crud('/usuarios').delete(id);
 
     // === ROLES DE USUARIO ===
-    async getRoles() {
-        return await this.request('/usuarios/roles/all');
-    }
 
-    async createRol(nombreRol, descripcion) {
-        return await this.request('/usuarios/roles', {
-            method: 'POST',
-            body: JSON.stringify({ nombreRol, descripcion })
-        });
-    }
-
-    async updateRol(id, nombreRol, descripcion) {
-        return await this.request(`/usuarios/roles/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombreRol, descripcion })
-        });
-    }
-
-    async deleteRol(id) {
-        return await this.request(`/usuarios/roles/${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getRoles = () => this.request('/usuarios/roles/all');
+    createRol = (nombreRol, descripcion) => this.request('/usuarios/roles', {
+        method: 'POST',
+        body: JSON.stringify({ nombreRol, descripcion })
+    });
+    updateRol = (id, nombreRol, descripcion) => this.request(`/usuarios/roles/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ nombreRol, descripcion })
+    });
+    deleteRol = (id) => this.request(`/usuarios/roles/${id}`, {
+        method: 'DELETE'
+    });
 
     // === RESPONSABLES PARA USUARIOS ===
-    async getResponsablesForUsers() {
-        return await this.request('/usuarios/responsables/all');
+
+    getResponsablesForUsers = () => this.request('/usuarios/responsables/all');
+
+    // === SUBIDA DE ARCHIVOS (Mejora #4) ===
+
+    async uploadFile(endpoint, file, additionalData = {}) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Agregar datos adicionales al FormData
+        Object.entries(additionalData).forEach(([key, value]) => {
+            formData.append(key, value);
+        });
+
+        return await this.request(endpoint, {
+            method: 'POST',
+            body: formData
+        });
     }
 }
 
 // Exportar instancia global
 const api = new API();
 
+// Configurar callback de sesión expirada
+api.onSessionExpired = () => {
+    if (typeof showToast === 'function') {
+        showToast('Su sesión ha expirado. Por favor, inicie sesión nuevamente.', 'warning');
+    }
+    setTimeout(() => {
+        window.location.reload();
+    }, 2000);
+};
