@@ -1197,15 +1197,15 @@ class App {
                         <h3>Ayuda Rápida</h3>
                         <div class="help-cards">
                             <div class="help-card">
-                                <div class="help-icon">📖</div>
+                                <div class="help-icon"></div>
                                 <h4>Manual de Usuario</h4>
                                 <p>Guía completa de uso del sistema según tu rol: <strong>${rolUsuario}</strong></p>
-                                <button class="btn btn-sm btn-primary" onclick="App.showUserManual()">
+                                <button class="btn btn-sm btn-primary" onclick="app.showUserManual()">
                                     Ver Manual
                                 </button>
                             </div>
                             <div class="help-card">
-                                <div class="help-icon">⚡</div>
+                                <div class="help-icon"></div>
                                 <h4>Atajos de Teclado</h4>
                                 <ul class="shortcuts-list">
                                     <li><kbd>Alt</kbd> + <kbd>D</kbd> - Dashboard</li>
@@ -1215,7 +1215,7 @@ class App {
                                 </ul>
                             </div>
                             <div class="help-card">
-                                <div class="help-icon">💡</div>
+                                <div class="help-icon"></div>
                                 <h4>Consejos</h4>
                                 <ul class="tips-list">
                                     <li>Usa la búsqueda para encontrar bienes rápido</li>
@@ -1383,7 +1383,7 @@ class App {
             </div>
         `;
 
-        showModal('Manual de Usuario', manualContent, [
+        showCustomModal('Manual de Usuario', manualContent, [
             { text: 'Volver', className: 'btn-secondary', callback: () => { App.showAbout(); } },
             { text: 'Cerrar', className: 'btn-tertiary', callback: () => { } }
         ]);

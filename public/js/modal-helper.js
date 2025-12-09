@@ -38,11 +38,14 @@ function showCustomModal(title, bodyHtml, buttons = []) {
     // Agregar event listeners a los botones
     buttons.forEach((btn, index) => {
         const btnElement = document.getElementById(`${modalId}-btn-${index}`);
-        if (btnElement && btn.callback) {
+        if (btnElement) {
             btnElement.addEventListener('click', () => {
+                // Ejecutar callback si existe
                 if (btn.callback) {
                     btn.callback();
                 }
+                // Cerrar modal automáticamente después del callback
+                closeCustomModal(modalId);
             });
         }
     });
@@ -76,4 +79,3 @@ function closeCustomModal(modalId) {
 
 window.showCustomModal = showCustomModal;
 window.closeCustomModal = closeCustomModal;
-
