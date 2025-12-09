@@ -1171,10 +1171,97 @@ class App {
             authManager.logout();
         });
 
+        // About  button
+        document.getElementById('about-btn').addEventListener('click', () => {
+            this.showAbout();
+        });
+
         // Mobile menu toggle
         document.getElementById('mobile-menu-toggle')?.addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('active');
         });
+    }
+
+    showAbout() {
+        const modalContent = `
+            <div class="about-modal">
+                <div class="about-header">
+                    <h2>Sistema de Inventario Institucional</h2>
+                    <p class="version">Versión 1.0.0</p>
+                </div>
+
+                <div class="about-body">
+                    <section class="about-section">
+                        <h3>Información del Sistema</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <strong>Nombre:</strong>
+                                <span>Sistema de Inventario Institucional</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Versión:</strong>
+                                <span>1.0.0</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Fecha:</strong>
+                                <span>Diciembre 2025</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Tecnología:</strong>
+                                <span>Node.js, Express, SQL Server, PWA</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="about-section">
+                        <h3>Desarrollador</h3>
+                        <div class="developer-info">
+                            <p><strong>Marx Laurof Cuadros Flores</strong></p>
+                            <p>Estudiante de Arquitectura de Plataformas y Servicios de Tecnologías de Información</p>
+                            <p>IESTP "Cesar Augusto Guardia Mayorga"</p>
+                            <p>4to Ciclo - 2025</p>
+                        </div>
+                        <div class="developer-links">
+                            <a href="mailto:marxcuadros24@gmail.com" target="_blank" class="link-btn">
+                                <span>📧</span> Email
+                            </a>
+                            <a href="https://github.com/marxcuadros24-png" target="_blank" class="link-btn">
+                                <span>💻</span> GitHub
+                            </a>
+                            <a href="https://www.linkedin.com/in/marx-laurof-cuadros-flores-893917388/" target="_blank" class="link-btn">
+                                <span>💼</span> LinkedIn
+                            </a>
+                        </div>
+                    </section>
+
+                    <section class="about-section">
+                        <h3>Características</h3>
+                        <ul class="features-list">
+                            <li>Progressive Web App (PWA) con soporte offline</li>
+                            <li>Control de acceso basado en roles</li>
+                            <li>Sincronización automática de datos</li>
+                            <li>Exportación a Excel y códigos QR</li>
+                            <li>Dashboard con estadísticas en tiempo real</li>
+                            <li>Seguridad empresarial (JWT, Rate Limiting, Sanitización)</li>
+                        </ul>
+                    </section>
+
+                    <section class="about-section">
+                        <h3>Licencia</h3>
+                        <p>Este software es propiedad del desarrollador y está bajo licencia de uso exclusivo institucional.</p>
+                        <p class="copyright">© 2025 Marx Laurof Cuadros Flores. Todos los derechos reservados.</p>
+                    </section>
+                </div>
+
+                <div class="about-footer">
+                    <p>Desarrollado con dedicación como proyecto académico</p>
+                </div>
+            </div>
+        `;
+
+        this.showModal('Acerca de', modalContent, [
+            { text: 'Cerrar', className: 'btn-secondary', callback: () => this.closeModal() }
+        ]);
     }
 
     async loadView(viewName) {

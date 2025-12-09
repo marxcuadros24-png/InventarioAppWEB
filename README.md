@@ -603,7 +603,7 @@ Este sistema es de uso exclusivo institucional. Todos los derechos reservados.
 
 ## Changelog
 
-### Versión 1.0.0 (2024)
+### Versión 1.0.0 (2025)
 - Sistema de inventario base
 - Autenticación y autorización
 - CRUD completo de bienes
