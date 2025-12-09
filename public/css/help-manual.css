@@ -1,0 +1,174 @@
+/* === HELP CARDS === */
+
+.help-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.help-card {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: transform var(--transition-base);
+}
+
+.help-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+}
+
+.help-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.help-card h4 {
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.help-card p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.shortcuts-list,
+.tips-list {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    font-size: var(--font-size-sm);
+}
+
+.shortcuts-list li,
+.tips-list li {
+    padding: var(--spacing-xs) 0;
+    color: var(--text-secondary);
+}
+
+kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+    color: var(--text-primary);
+}
+
+/* === USER MANUAL STYLES === */
+
+.user-manual {
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.user-manual h2 {
+    font-size: var(--font-size-xl);
+    color: var(--primary);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--primary);
+}
+
+.manual-section {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+}
+
+.manual-section:last-child {
+    border-bottom: none;
+}
+
+.manual-section h3 {
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.manual-section p {
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.6;
+}
+
+.manual-section ul {
+    margin-left: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.manual-section li {
+    margin-bottom: var(--spacing-xs);
+    line-height: 1.6;
+}
+
+/* Role Permissions */
+.role-permissions {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border-left: 4px solid;
+}
+
+.role-permissions.admin {
+    border-left-color: #ef4444;
+}
+
+.role-permissions.supervisor {
+    border-left-color: #f59e0b;
+}
+
+.role-permissions.consultor {
+    border-left-color: #3b82f6;
+}
+
+.role-permissions ul {
+    margin-left: 0;
+    padding-left: var(--spacing-lg);
+}
+
+.role-permissions .note {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+/* FAQ */
+.faq-list {
+    margin: 0;
+}
+
+.faq-list dt {
+    font-weight: 600;
+    color: var(--primary);
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+}
+
+.faq-list dd {
+    margin-left: var(--spacing-lg);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Responsive for help */
+@media (max-width: 768px) {
+    .help-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .user-manual h2 {
+        font-size: var(--font-size-lg);
+    }
+}

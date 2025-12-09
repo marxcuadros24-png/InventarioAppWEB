@@ -1183,6 +1183,8 @@ class App {
     }
 
     showAbout() {
+        const rolUsuario = getRolActual();
+
         const modalContent = `
             <div class="about-modal">
                 <div class="about-header">
@@ -1191,6 +1193,40 @@ class App {
                 </div>
 
                 <div class="about-body">
+                    <section class="about-section">
+                        <h3>Ayuda Rápida</h3>
+                        <div class="help-cards">
+                            <div class="help-card">
+                                <div class="help-icon">📖</div>
+                                <h4>Manual de Usuario</h4>
+                                <p>Guía completa de uso del sistema según tu rol: <strong>${rolUsuario}</strong></p>
+                                <button class="btn btn-sm btn-primary" onclick="App.showUserManual()">
+                                    Ver Manual
+                                </button>
+                            </div>
+                            <div class="help-card">
+                                <div class="help-icon">⚡</div>
+                                <h4>Atajos de Teclado</h4>
+                                <ul class="shortcuts-list">
+                                    <li><kbd>Alt</kbd> + <kbd>D</kbd> - Dashboard</li>
+                                    <li><kbd>Alt</kbd> + <kbd>B</kbd> - Bienes</li>
+                                    <li><kbd>Alt</kbd> + <kbd>R</kbd> - Responsables</li>
+                                    <li><kbd>Esc</kbd> - Cerrar modal</li>
+                                </ul>
+                            </div>
+                            <div class="help-card">
+                                <div class="help-icon">💡</div>
+                                <h4>Consejos</h4>
+                                <ul class="tips-list">
+                                    <li>Usa la búsqueda para encontrar bienes rápido</li>
+                                    <li>El sistema funciona sin conexión</li>
+                                    <li>Exporta reportes regularmente</li>
+                                    <li>Cierra sesión al terminar</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
                     <section class="about-section">
                         <h3>Información del Sistema</h3>
                         <div class="info-grid">
@@ -1262,6 +1298,142 @@ class App {
         this.showModal('Acerca de', modalContent, [
             { text: 'Cerrar', className: 'btn-secondary', callback: () => this.closeModal() }
         ]);
+    }
+
+    showUserManual() {
+        const rolUsuario = getRolActual();
+
+        const manualContent = `
+            <div class="user-manual">
+                <h2>Manual de Usuario - ${rolUsuario}</h2>
+                
+                <div class="manual-section">
+                    <h3>1. Acceso al Sistema</h3>
+                    <p>Inicia sesión con las credenciales proporcionadas por el administrador.</p>
+                    <p><strong>Importante:</strong> Cierra sesión al terminar, especialmente en equipos compartidos.</p>
+                </div>
+
+                <div class="manual-section">
+                    <h3>2. Tus Permisos (${rolUsuario})</h3>
+                    ${this.getRolePermissionsText(rolUsuario)}
+                </div>
+
+                <div class="manual-section">
+                    <h3>3. Navegación</h3>
+                    <ul>
+                        <li><strong>Dashboard:</strong> Vista general con estadísticas</li>
+                        <li><strong>Bienes:</strong> Gestión del inventario</li>
+                        <li><strong>Responsables:</strong> Personal a cargo de bienes</li>
+                        <li><strong>Movimientos:</strong> Registro de cambios</li>
+                        <li><strong>Reportes:</strong> Exportación de datos</li>
+                    </ul>
+                </div>
+
+                <div class="manual-section">
+                    <h3>4. Búsqueda de Bienes</h3>
+                    <p>Usa la barra de búsqueda para encontrar bienes por:</p>
+                    <ul>
+                        <li>Código patrimonial</li>
+                        <li>Nombre del bien</li>
+                        <li>Responsable asignado</li>
+                    </ul>
+                </div>
+
+                <div class="manual-section">
+                    <h3>5. Exportación de Reportes</h3>
+                    <p>Genera reportes en Excel desde la sección de Reportes:</p>
+                    <ul>
+                        <li><strong>Reporte de Bienes:</strong> Inventario completo</li>
+                        <li><strong>Reporte de Movimientos:</strong> Historial de cambios</li>
+                        <li><strong>Reporte Completo:</strong> Todos los datos en un archivo</li>
+                    </ul>
+                </div>
+
+                <div class="manual-section">
+                    <h3>6. Modo Offline</h3>
+                    <p>El sistema funciona sin conexión a internet:</p>
+                    <ul>
+                        <li>Los datos se guardan localmente</li>
+                        <li>Se sincronizan automáticamente al recuperar conexión</li>
+                        <li>Verás un indicador cuando estés offline</li>
+                    </ul>
+                </div>
+
+                <div class="manual-section">
+                    <h3>7. Preguntas Frecuentes</h3>
+                    <dl class="faq-list">
+                        <dt>¿Cómo cambio mi contraseña?</dt>
+                        <dd>Contacta al administrador del sistema.</dd>
+                        
+                        <dt>¿Puedo usar el sistema en mi móvil?</dt>
+                        <dd>Sí, es totalmente responsive y se puede instalar como app.</dd>
+                        
+                        <dt>¿Los cambios se guardan automáticamente?</dt>
+                        <dd>Debes hacer clic en "Guardar" en cada formulario.</dd>
+                        
+                        <dt>¿Qué hago si olvido mi contraseña?</dt>
+                        <dd>Contacta al administrador para reseteo.</dd>
+                    </dl>
+                </div>
+
+                <div class="manual-section">
+                    <h3>8. Soporte</h3>
+                    <p>Para asistencia técnica, contacta al administrador del sistema con detalles específicos del problema.</p>
+                </div>
+            </div>
+        `;
+
+        this.showModal('Manual de Usuario', manualContent, [
+            { text: 'Volver', className: 'btn-secondary', callback: () => { this.closeModal(); this.showAbout(); } },
+            { text: 'Cerrar', className: 'btn-tertiary', callback: () => this.closeModal() }
+        ]);
+    }
+
+    getRolePermissionsText(rol) {
+        const permissions = {
+            'Administrador': `
+                <div class="role-permissions admin">
+                    <p><strong>Tienes acceso completo al sistema:</strong></p>
+                    <ul>
+                        <li>✅ Ver toda la información</li>
+                        <li>✅ Crear y editar bienes, responsables, movimientos</li>
+                        <li>✅ Eliminar registros</li>
+                        <li>✅ Gestionar usuarios y catálogos</li>
+                        <li>✅ Acceso a auditoría</li>
+                    </ul>
+                </div>
+            `,
+            'Supervisor': `
+                <div class="role-permissions supervisor">
+                    <p><strong>Tus permisos incluyen:</strong></p>
+                    <ul>
+                        <li>✅ Ver toda la información</li>
+                        <li>✅ Crear y editar bienes</li>
+                        <li>✅ Crear y editar responsables</li>
+                        <li>✅ Registrar movimientos</li>
+                        <li>✅ Generar reportes</li>
+                        <li>❌ No puedes eliminar registros</li>
+                        <li>❌ No puedes gestionar usuarios ni catálogos</li>
+                    </ul>
+                </div>
+            `,
+            'Consultor': `
+                <div class="role-permissions consultor">
+                    <p><strong>Tu acceso es de solo lectura:</strong></p>
+                    <ul>
+                        <li>✅ Ver toda la información</li>
+                        <li>✅ Generar y exportar reportes</li>
+                        <li>✅ Buscar y filtrar datos</li>
+                        <li>❌ No puedes crear nuevos registros</li>
+                        <li>❌ No puedes editar información</li>
+                        <li>❌ No puedes eliminar registros</li>
+                    </ul>
+                    <p class="note">Si necesitas realizar cambios, contacta a un Supervisor o Administrador.</p>
+                </div>
+            `
+        };
+
+        return permissions[rol] || permissions['Consultor'];
     }
 
     async loadView(viewName) {
