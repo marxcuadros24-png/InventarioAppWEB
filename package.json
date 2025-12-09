@@ -14,8 +14,17 @@
     "offline",
     "sql-server"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "[Tu Nombre Completo]",
+    "email": "[tu.email@institucion.edu]",
+    "url": "[tu_github_o_portfolio]"
+  },
+  "contributors": [],
+  "repository": {
+    "type": "git",
+    "url": "[URL_DE_TU_REPOSITORIO]"
+  },
+  "license": "Propietario",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
