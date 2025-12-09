@@ -490,6 +490,116 @@ body {
     gap: var(--spacing-md);
 }
 
+/* === FORM VALIDATION STYLES === */
+
+/* Estado inválido */
+.form-group input.is-invalid,
+.form-group select.is-invalid,
+.form-group textarea.is-invalid {
+    border-color: var(--error);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.form-group input.is-invalid:focus,
+.form-group select.is-invalid:focus,
+.form-group textarea.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+/* Estado válido */
+.form-group input.is-valid,
+.form-group select.is-valid,
+.form-group textarea.is-valid {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.form-group input.is-valid:focus,
+.form-group select.is-valid:focus,
+.form-group textarea.is-valid:focus {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Mensaje de error */
+.form-error {
+    display: none;
+    font-size: var(--font-size-xs);
+    color: var(--error);
+    margin-top: var(--spacing-xs);
+    padding-left: 2px;
+    animation: fadeInError 0.2s ease;
+}
+
+.form-group.has-error .form-error {
+    display: block;
+}
+
+@keyframes fadeInError {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Icono de validación en el campo */
+.form-group.with-validation {
+    position: relative;
+}
+
+.form-group.with-validation input,
+.form-group.with-validation select {
+    padding-right: 2.5rem;
+}
+
+.validation-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(25%);
+    font-size: 1.1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.form-group.has-error .validation-icon.icon-error,
+.form-group.has-success .validation-icon.icon-success {
+    opacity: 1;
+}
+
+/* Label con asterisco para campos requeridos */
+.form-group label .required {
+    color: var(--error);
+    margin-left: 2px;
+}
+
+/* Hint text */
+.form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+/* Contador de caracteres */
+.char-counter {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: var(--spacing-xs);
+}
+
+.char-counter.warning {
+    color: var(--warning);
+}
+
+.char-counter.error {
+    color: var(--error);
+}
+
 /* === BUTTONS === */
 .btn {
     padding: 0.75rem 1.5rem;
