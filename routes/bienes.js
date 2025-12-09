@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, sql } = require('../config/database');
+const { adminOSupervisor, soloAdmin } = require('../middleware/security');
 
 // Obtener todos los bienes con detalles
 router.get('/', async (req, res) => {
@@ -103,8 +104,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Crear nuevo bien
-router.post('/', async (req, res) => {
+// Crear nuevo bien (Solo Admin y Supervisor)
+router.post('/', adminOSupervisor, async (req, res) => {
     console.log('🔵 POST /api/bienes - Petición recibida');
     console.log('📦 Body:', JSON.stringify(req.body, null, 2));
 
@@ -213,8 +214,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Actualizar bien
-router.put('/:id', async (req, res) => {
+// Actualizar bien (Solo Admin y Supervisor)
+router.put('/:id', adminOSupervisor, async (req, res) => {
     try {
         const {
             nombre, idCategoria, idMarca, idEstado,
@@ -251,8 +252,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Eliminar bien
-router.delete('/:id', async (req, res) => {
+// Eliminar bien (Solo Admin)
+router.delete('/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         await pool.request()

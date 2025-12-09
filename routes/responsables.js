@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, sql } = require('../config/database');
+const { adminOSupervisor, soloAdmin } = require('../middleware/security');
 
 // Obtener todos los responsables
 router.get('/', async (req, res) => {
@@ -44,8 +45,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Crear nuevo responsable
-router.post('/', async (req, res) => {
+// Crear nuevo responsable (Solo Admin y Supervisor)
+router.post('/', adminOSupervisor, async (req, res) => {
     try {
         const { nombres, apellidos, dni, telefono, correo, idArea } = req.body;
 
@@ -74,8 +75,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Actualizar responsable
-router.put('/:id', async (req, res) => {
+// Actualizar responsable (Solo Admin y Supervisor)
+router.put('/:id', adminOSupervisor, async (req, res) => {
     try {
         const { nombres, apellidos, dni, telefono, correo, idArea } = req.body;
 
@@ -107,8 +108,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Eliminar responsable
-router.delete('/:id', async (req, res) => {
+// Eliminar responsable (Solo Admin)
+router.delete('/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
 

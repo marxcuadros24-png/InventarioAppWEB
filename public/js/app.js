@@ -1099,7 +1099,7 @@ class App {
             }
         });
 
-        console.log(`🔐 Menú configurado para rol: ${getRolActual()}`);
+        console.log(` Menú configurado para rol: ${getRolActual()}`);
     }
 
     showLogin() {

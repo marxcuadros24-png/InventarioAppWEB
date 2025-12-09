@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, sql } = require('../config/database');
+const { adminOSupervisor } = require('../middleware/security');
 
 // Obtener todos los movimientos
 router.get('/', async (req, res) => {
@@ -48,8 +49,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Crear nuevo movimiento
-router.post('/', async (req, res) => {
+// Crear nuevo movimiento (Solo Admin y Supervisor)
+router.post('/', adminOSupervisor, async (req, res) => {
     try {
         const { idBien, idTipoMovimiento, descripcion, idUsuario } = req.body;
 

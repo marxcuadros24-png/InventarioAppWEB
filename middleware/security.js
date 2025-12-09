@@ -62,7 +62,7 @@ const verificarRol = (...rolesPermitidos) => {
 
         if (!rolesPermitidos.includes(rolUsuario)) {
             // Log del intento de acceso no autorizado
-            console.warn(`⚠️ Acceso denegado: Usuario ${req.usuario.nombreUsuario} (${rolUsuario}) intentó acceder a recurso restringido`);
+            console.warn(` Acceso denegado: Usuario ${req.usuario.nombreUsuario} (${rolUsuario}) intentó acceder a recurso restringido`);
 
             return res.status(403).json({
                 error: 'Acceso prohibido',
@@ -125,7 +125,7 @@ const rateLimiter = (options = {}) => {
         data.count++;
 
         if (data.count > maxRequests) {
-            console.warn(`⚠️ Rate limit excedido para IP: ${ip}`);
+            console.warn(` Rate limit excedido para IP: ${ip}`);
             return res.status(429).json({
                 error: 'Demasiadas solicitudes',
                 message,
@@ -138,15 +138,18 @@ const rateLimiter = (options = {}) => {
 };
 
 // Rate limiters específicos
+// En producción, reducir a 5 intentos cada 15 minutos
+const isProduction = process.env.NODE_ENV === 'production';
+
 const loginLimiter = rateLimiter({
-    windowMs: 15 * 60 * 1000,  // 15 minutos
-    maxRequests: 5,             // 5 intentos
-    message: 'Demasiados intentos de inicio de sesión. Intente en 15 minutos.'
+    windowMs: isProduction ? 15 * 60 * 1000 : 5 * 60 * 1000,  // 15 min prod, 5 min dev
+    maxRequests: isProduction ? 5 : 20,                        // 5 prod, 20 dev
+    message: 'Demasiados intentos de inicio de sesión. Intente más tarde.'
 });
 
 const apiLimiter = rateLimiter({
     windowMs: 60000,           // 1 minuto
-    maxRequests: 100,          // 100 requests
+    maxRequests: isProduction ? 100 : 500,  // más permisivo en desarrollo
     message: 'Demasiadas solicitudes. Por favor, espere un momento.'
 });
 
