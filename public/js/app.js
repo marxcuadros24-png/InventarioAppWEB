@@ -1107,9 +1107,28 @@ class App {
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('app').classList.add('hidden');
 
+        // Configurar validación del formulario de login
+        const loginValidator = validateForm('#login-form', {
+            username: {
+                required: true,
+                minLength: 3,
+                message: 'Usuario requerido (mínimo 3 caracteres)'
+            },
+            password: {
+                required: true,
+                minLength: 6,
+                message: 'Contraseña requerida (mínimo 6 caracteres)'
+            }
+        });
+
         // Login form handler
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Validar antes de enviar
+            if (!loginValidator.validateAll()) {
+                return; // El validador ya muestra los errores
+            }
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
