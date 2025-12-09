@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, sql } = require('../config/database');
+const { soloAdmin } = require('../middleware/security');
 
 // ========================
 // OBTENER TODOS LOS CATÁLOGOS
@@ -51,7 +52,7 @@ router.get('/marcas', async (req, res) => {
     }
 });
 
-router.post('/marcas', async (req, res) => {
+router.post('/marcas', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -68,7 +69,7 @@ router.post('/marcas', async (req, res) => {
     }
 });
 
-router.put('/marcas/:id', async (req, res) => {
+router.put('/marcas/:id', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -86,7 +87,7 @@ router.put('/marcas/:id', async (req, res) => {
     }
 });
 
-router.delete('/marcas/:id', async (req, res) => {
+router.delete('/marcas/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         // Verificar si hay bienes usando esta marca
@@ -122,7 +123,7 @@ router.get('/estados', async (req, res) => {
     }
 });
 
-router.post('/estados', async (req, res) => {
+router.post('/estados', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -139,7 +140,7 @@ router.post('/estados', async (req, res) => {
     }
 });
 
-router.put('/estados/:id', async (req, res) => {
+router.put('/estados/:id', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -157,7 +158,7 @@ router.put('/estados/:id', async (req, res) => {
     }
 });
 
-router.delete('/estados/:id', async (req, res) => {
+router.delete('/estados/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         const check = await pool.request()
@@ -192,7 +193,7 @@ router.get('/tipos-bien', async (req, res) => {
     }
 });
 
-router.post('/tipos-bien', async (req, res) => {
+router.post('/tipos-bien', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -209,7 +210,7 @@ router.post('/tipos-bien', async (req, res) => {
     }
 });
 
-router.put('/tipos-bien/:id', async (req, res) => {
+router.put('/tipos-bien/:id', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -227,7 +228,7 @@ router.put('/tipos-bien/:id', async (req, res) => {
     }
 });
 
-router.delete('/tipos-bien/:id', async (req, res) => {
+router.delete('/tipos-bien/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         // Verificar si hay categorías usando este tipo
@@ -277,7 +278,7 @@ router.get('/categorias/:idTipoBien', async (req, res) => {
     }
 });
 
-router.post('/categorias', async (req, res) => {
+router.post('/categorias', soloAdmin, async (req, res) => {
     try {
         const { nombre, idTipoBien } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -298,7 +299,7 @@ router.post('/categorias', async (req, res) => {
     }
 });
 
-router.put('/categorias/:id', async (req, res) => {
+router.put('/categorias/:id', soloAdmin, async (req, res) => {
     try {
         const { nombre, idTipoBien } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -317,7 +318,7 @@ router.put('/categorias/:id', async (req, res) => {
     }
 });
 
-router.delete('/categorias/:id', async (req, res) => {
+router.delete('/categorias/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         const check = await pool.request()
@@ -352,7 +353,7 @@ router.get('/areas', async (req, res) => {
     }
 });
 
-router.post('/areas', async (req, res) => {
+router.post('/areas', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -369,7 +370,7 @@ router.post('/areas', async (req, res) => {
     }
 });
 
-router.put('/areas/:id', async (req, res) => {
+router.put('/areas/:id', soloAdmin, async (req, res) => {
     try {
         const { nombre } = req.body;
         if (!nombre || nombre.trim() === '') {
@@ -387,7 +388,7 @@ router.put('/areas/:id', async (req, res) => {
     }
 });
 
-router.delete('/areas/:id', async (req, res) => {
+router.delete('/areas/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         // Verificar bienes y responsables
@@ -431,7 +432,7 @@ router.get('/metodos', async (req, res) => {
     }
 });
 
-router.post('/metodos', async (req, res) => {
+router.post('/metodos', soloAdmin, async (req, res) => {
     try {
         const { nombreMetodo } = req.body;
         if (!nombreMetodo || nombreMetodo.trim() === '') {
@@ -448,7 +449,7 @@ router.post('/metodos', async (req, res) => {
     }
 });
 
-router.put('/metodos/:id', async (req, res) => {
+router.put('/metodos/:id', soloAdmin, async (req, res) => {
     try {
         const { nombreMetodo } = req.body;
         if (!nombreMetodo || nombreMetodo.trim() === '') {
@@ -466,7 +467,7 @@ router.put('/metodos/:id', async (req, res) => {
     }
 });
 
-router.delete('/metodos/:id', async (req, res) => {
+router.delete('/metodos/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         const check = await pool.request()
@@ -501,7 +502,7 @@ router.get('/tipos-movimiento', async (req, res) => {
     }
 });
 
-router.post('/tipos-movimiento', async (req, res) => {
+router.post('/tipos-movimiento', soloAdmin, async (req, res) => {
     try {
         const { nombreMovimiento } = req.body;
         if (!nombreMovimiento || nombreMovimiento.trim() === '') {
@@ -518,7 +519,7 @@ router.post('/tipos-movimiento', async (req, res) => {
     }
 });
 
-router.put('/tipos-movimiento/:id', async (req, res) => {
+router.put('/tipos-movimiento/:id', soloAdmin, async (req, res) => {
     try {
         const { nombreMovimiento } = req.body;
         if (!nombreMovimiento || nombreMovimiento.trim() === '') {
@@ -536,7 +537,7 @@ router.put('/tipos-movimiento/:id', async (req, res) => {
     }
 });
 
-router.delete('/tipos-movimiento/:id', async (req, res) => {
+router.delete('/tipos-movimiento/:id', soloAdmin, async (req, res) => {
     try {
         const pool = await getConnection();
         const check = await pool.request()

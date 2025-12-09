@@ -73,8 +73,10 @@ app.use('/api/movimientos', verificarToken, logSecurity, movimientosRoutes);
 app.use('/api/dashboard', verificarToken, dashboardRoutes);
 app.use('/api/reportes', verificarToken, logSecurity);
 
+// Rutas que requieren autenticación pero con control granular interno
+app.use('/api/catalogos', verificarToken, logSecurity, catalogosRoutes);
+
 // Rutas solo para administradores
-app.use('/api/catalogos', verificarToken, logSecurity, soloAdmin, catalogosRoutes);
 app.use('/api/usuarios', verificarToken, logSecurity, soloAdmin, usuariosRoutes);
 app.use('/api/auditoria', verificarToken, logSecurity, soloAdmin, auditoriaRoutes);
 
