@@ -60,7 +60,7 @@
                 </form>
 
                 <div class="offline-indicator hidden" id="offline-login">
-                    <span>⚠️ Sin conexión - Modo offline</span>
+                    <span> Sin conexión - Modo offline</span>
                 </div>
             </div>
         </div>
@@ -116,8 +116,8 @@
                     <span class="user-name">Usuario</span>
                 </div>
                 <div class="sidebar-footer-buttons">
-                    <button class="btn btn-tertiary btn-sm" id="about-btn" title="Acerca de">
-                        <span>ℹ️</span> Acerca de
+                    <button class="btn btn-tertiary btn-sm" id="about-btn" title="Acerca de...">
+                        Acerca de...
                     </button>
                     <button class="btn btn-secondary btn-sm" id="logout-btn">Cerrar Sesión</button>
                 </div>
@@ -188,8 +188,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('✅ Service Worker registrado'))
-                    .catch(err => console.error('❌ Error al registrar Service Worker:', err));
+                    .then(reg => console.log(' Service Worker registrado'))
+                    .catch(err => console.error('Error al registrar Service Worker:', err));
             });
         }
     </script>
