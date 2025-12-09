@@ -67,8 +67,6 @@ kbd {
 
 .user-manual {
     max-width: 700px;
-    max-height: 80vh;
-    overflow-y: auto;
 }
 
 .user-manual h2 {

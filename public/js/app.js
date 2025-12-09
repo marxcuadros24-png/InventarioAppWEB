@@ -1295,8 +1295,8 @@ class App {
             </div>
         `;
 
-        this.showModal('Acerca de', modalContent, [
-            { text: 'Cerrar', className: 'btn-secondary', callback: () => this.closeModal() }
+        showCustomModal('Acerca de', modalContent, [
+            { text: 'Cerrar', className: 'btn-secondary', callback: () => { } }
         ]);
     }
 
@@ -1383,9 +1383,9 @@ class App {
             </div>
         `;
 
-        this.showModal('Manual de Usuario', manualContent, [
-            { text: 'Volver', className: 'btn-secondary', callback: () => { this.closeModal(); this.showAbout(); } },
-            { text: 'Cerrar', className: 'btn-tertiary', callback: () => this.closeModal() }
+        showModal('Manual de Usuario', manualContent, [
+            { text: 'Volver', className: 'btn-secondary', callback: () => { App.showAbout(); } },
+            { text: 'Cerrar', className: 'btn-tertiary', callback: () => { } }
         ]);
     }
 
@@ -1395,11 +1395,11 @@ class App {
                 <div class="role-permissions admin">
                     <p><strong>Tienes acceso completo al sistema:</strong></p>
                     <ul>
-                        <li>✅ Ver toda la información</li>
-                        <li>✅ Crear y editar bienes, responsables, movimientos</li>
-                        <li>✅ Eliminar registros</li>
-                        <li>✅ Gestionar usuarios y catálogos</li>
-                        <li>✅ Acceso a auditoría</li>
+                        <li> Ver toda la información</li>
+                        <li>Crear y editar bienes, responsables, movimientos</li>
+                        <li>Eliminar registros</li>
+                        <li>Gestionar usuarios y catálogos</li>
+                        <li>Acceso a auditoría</li>
                     </ul>
                 </div>
             `,
@@ -1407,13 +1407,13 @@ class App {
                 <div class="role-permissions supervisor">
                     <p><strong>Tus permisos incluyen:</strong></p>
                     <ul>
-                        <li>✅ Ver toda la información</li>
-                        <li>✅ Crear y editar bienes</li>
-                        <li>✅ Crear y editar responsables</li>
-                        <li>✅ Registrar movimientos</li>
-                        <li>✅ Generar reportes</li>
-                        <li>❌ No puedes eliminar registros</li>
-                        <li>❌ No puedes gestionar usuarios ni catálogos</li>
+                        <li>Ver toda la información</li>
+                        <li>Crear y editar bienes</li>
+                        <li>Crear y editar responsables</li>
+                        <li>Registrar movimientos</li>
+                        <li>Generar reportes</li>
+                        <li>No puedes eliminar registros</li>
+                        <li>No puedes gestionar usuarios ni catálogos</li>
                     </ul>
                 </div>
             `,
@@ -1421,12 +1421,12 @@ class App {
                 <div class="role-permissions consultor">
                     <p><strong>Tu acceso es de solo lectura:</strong></p>
                     <ul>
-                        <li>✅ Ver toda la información</li>
-                        <li>✅ Generar y exportar reportes</li>
-                        <li>✅ Buscar y filtrar datos</li>
-                        <li>❌ No puedes crear nuevos registros</li>
-                        <li>❌ No puedes editar información</li>
-                        <li>❌ No puedes eliminar registros</li>
+                        <li>Ver toda la información</li>
+                        <li>Generar y exportar reportes</li>
+                        <li>Buscar y filtrar datos</li>
+                        <li>No puedes crear nuevos registros</li>
+                        <li>No puedes editar información</li>
+                        <li>No puedes eliminar registros</li>
                     </ul>
                     <p class="note">Si necesitas realizar cambios, contacta a un Supervisor o Administrador.</p>
                 </div>

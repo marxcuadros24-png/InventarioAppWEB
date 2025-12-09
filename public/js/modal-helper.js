@@ -3,9 +3,17 @@
 function showCustomModal(title, bodyHtml, buttons = []) {
     // Crear overlay del modal
     const modalId = 'custom-modal-' + Date.now();
-    const buttonsHtml = buttons.map(btn =>
-        `<button class="btn ${btn.className || 'btn-secondary'}" onclick="closeCustomModal('${modalId}'); ${btn.onclick || ''}">${btn.text}</button>`
-    ).join('');
+
+    // Crear botones
+    let buttonsHtml = '';
+    if (buttons.length > 0) {
+        buttonsHtml = buttons.map((btn, index) => {
+            const btnId = `${modalId}-btn-${index}`;
+            return `<button class="btn ${btn.className || 'btn-secondary'}" id="${btnId}">${btn.text}</button>`;
+        }).join('');
+    } else {
+        buttonsHtml = `<button class="btn btn-secondary" onclick="closeCustomModal('${modalId}')">Cerrar</button>`;
+    }
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
@@ -18,7 +26,7 @@ function showCustomModal(title, bodyHtml, buttons = []) {
                     ${bodyHtml}
                 </div>
                 <div class="modal-footer">
-                    ${buttonsHtml || '<button class="btn btn-secondary" onclick="closeCustomModal(\'' + modalId + '\')">Cerrar</button>'}
+                    ${buttonsHtml}
                 </div>
             </div>
         </div>
@@ -26,6 +34,18 @@ function showCustomModal(title, bodyHtml, buttons = []) {
 
     // Agregar al DOM
     document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Agregar event listeners a los botones
+    buttons.forEach((btn, index) => {
+        const btnElement = document.getElementById(`${modalId}-btn-${index}`);
+        if (btnElement && btn.callback) {
+            btnElement.addEventListener('click', () => {
+                if (btn.callback) {
+                    btn.callback();
+                }
+            });
+        }
+    });
 
     // Agregar listener para cerrar con ESC
     const closeOnEsc = (e) => {
@@ -56,3 +76,4 @@ function closeCustomModal(modalId) {
 
 window.showCustomModal = showCustomModal;
 window.closeCustomModal = closeCustomModal;
+
