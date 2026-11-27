@@ -1,217 +1,122 @@
 # Sistema de Inventario Institucional
 
-Sistema web profesional para la gestión integral de inventario institucional con capacidades de Progressive Web Application (PWA), arquitectura híbrida online/offline y control de acceso basado en roles.
+Sistema web híbrido (PWA) para la gestión integral de inventario institucional, con soporte **online/offline**, sincronización automática y control de acceso basado en roles (**RBAC**).
 
 ## Tabla de Contenidos
 
-- [Descripción General](#descripción-general)
 - [Características Principales](#características-principales)
-- [Requisitos del Sistema](#requisitos-del-sistema)
-- [Instalación](#instalación)
-- [Configuración](#configuración)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Requisitos](#requisitos)
+- [Instalación y Puesta en Marcha](#instalación-y-puesta-en-marcha)
+- [Variables de Entorno](#variables-de-entorno)
 - [Estructura del Proyecto](#estructura-del-proyecto)
-- [Arquitectura](#arquitectura)
+- [Arquitectura y Modo Híbrido](#arquitectura-y-modo-híbrido)
 - [Seguridad](#seguridad)
-- [API Reference](#api-reference)
-- [Deployment](#deployment)
+- [Endpoints Principales (API)](#endpoints-principales-api)
+- [Despliegue en Producción](#despliegue-en-producción)
 - [Solución de Problemas](#solución-de-problemas)
-
----
-
-## Descripción General
-
-Este sistema permite la gestión completa del inventario institucional mediante una interfaz web moderna y responsive. Implementa un modelo híbrido que permite operaciones tanto con conexión a internet como en modo offline, sincronizando automáticamente los cambios cuando la conectividad se restablece.
-
-### Tecnologías Implementadas
-
-**Backend:**
-- Node.js v16+
-- Express.js 4.x
-- SQL Server (mssql driver)
-- JWT para autenticación
-- bcryptjs para encriptación de contraseñas
-
-**Frontend:**
-- HTML5 / CSS3 / JavaScript ES6+
-- IndexedDB para almacenamiento local
-- Service Workers para funcionalidad offline
-- Chart.js para visualización de datos
-- SheetJS para exportación a Excel
-
-**Seguridad:**
-- Autenticación basada en JWT
-- Control de acceso por roles (RBAC)
-- Rate limiting
-- Sanitización de inputs
-- Validación de datos en tiempo real
+- [Documentación Adicional](#documentación-adicional)
 
 ---
 
 ## Características Principales
 
-### Gestión de Inventario
-- Registro completo de bienes institucionales
-- Códigos patrimoniales únicos con generación automática
-- Categorización jerárquica (Tipo de Bien > Categoría)
-- Seguimiento de estado y ubicación
-- Especificaciones técnicas detalladas
-- Información de adquisición completa
-
-### Control de Acceso
-- Sistema de roles: Administrador, Supervisor, Consultor
-- Permisos granulares por módulo y operación
-- Matriz de permisos configurable
-- Auditoría de acciones
-
-### Funcionalidad Offline
-- Modo híbrido automático
-- Almacenamiento local con IndexedDB
-- Sincronización bidireccional
-- Queue de operaciones pendientes
-- Resolución de conflictos
-
-### Reportes y Exportación
-- Dashboard con métricas en tiempo real
-- Gráficos interactivos (Chart.js)
-- Exportación a Excel multi-hoja
-- Generación de códigos QR
-- Exportación a PDF
-- Reportes personalizados
-
-### Progressive Web App
-- Instalable en dispositivos
-- Funciona offline
-- Notificaciones push (preparado)
-- Actualización automática
-- Responsive design
+- **Gestión de bienes:** Registro completo, códigos patrimoniales, categorización jerárquica (Tipo de Bien / Categoría), estado, ubicación, responsable, datos de adquisición y especificaciones técnicas.
+- **Control de acceso (RBAC):** Roles `Administrador`, `Supervisor` y `Consultor` con permisos granulares en frontend y backend.
+- **PWA y modo offline:** Instalable en escritorio/móvil, caché de activos estáticos mediante Service Worker, almacenamiento local en `IndexedDB` y cola de sincronización al recuperar conexión.
+- **Reportes y utilidades:** Dashboard con métricas, exportación a Excel y PDF (`jspdf`), generación y lectura de códigos QR (`qrcode`), y módulo de auditoría y movimientos.
 
 ---
 
-## Requisitos del Sistema
+## Stack Tecnológico
 
-### Servidor
-- Node.js >= 16.0.0
-- npm >= 7.0.0
-- SQL Server 2016 o superior
-- Windows Server / Linux (recomendado Ubuntu 20.04+)
-- Mínimo 2GB RAM
-- 10GB espacio en disco
-
-### Cliente
-- Navegadores modernos:
-  - Chrome >= 90
-  - Firefox >= 88
-  - Edge >= 90
-  - Safari >= 14
-- JavaScript habilitado
-- Conexión a internet (para primera carga)
-
-### Base de Datos
-- SQL Server 2016+
-- Base de datos `InventarioDB` creada
-- Usuario con permisos de lectura/escritura
-- Puerto 1433 accesible
+| Capa | Tecnologías |
+| :--- | :--- |
+| **Backend** | Node.js (>= 16), Express 4, `mssql` (SQL Server), `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv` |
+| **Frontend** | HTML5, CSS3, JavaScript (ES6+), IndexedDB, Service Worker, `jspdf`, `qrcode` |
+| **Base de datos** | Microsoft SQL Server 2016+ |
 
 ---
 
-## Instalación
+## Requisitos
 
-### 1. Clonar el Repositorio
+- **Node.js** >= 16.0.0 y **npm** >= 7.0.0
+- **SQL Server** 2016 o superior (puerto `1433` accesible y TCP/IP habilitado)
+- Navegador moderno (Chrome, Edge, Firefox o Safari)
+
+---
+
+## Instalación y Puesta en Marcha
+
+### 1. Clonar el repositorio e instalar dependencias
 
 ```bash
-git clone [URL_REPOSITORIO]
+git clone <URL_DEL_REPOSITORIO>
 cd InventarioWeb
-```
-
-### 2. Instalar Dependencias
-
-```bash
 npm install
 ```
 
-### 3. Configurar Base de Datos
+### 2. Configurar variables de entorno
 
-Ejecutar el script SQL de creación de base de datos:
-
-```bash
-# El archivo SQL debe ejecutarse en SQL Server Management Studio
-# Ubicación: database/schema.sql
-```
-
-### 4. Configurar Variables de Entorno
-
-Copiar el archivo de ejemplo y configurar:
+Copia la plantilla y completa tus propios valores locales (el archivo `.env` está ignorado por Git y **nunca debe subirse al repositorio**):
 
 ```bash
 copy .env.example .env
 ```
 
-Editar `.env` con los valores apropiados (ver sección [Configuración](#configuración)).
-
-### 5. Generar JWT Secret
+### 3. Generar un `JWT_SECRET` seguro
 
 ```bash
 node generate-secret.js
 ```
 
-Copiar una de las claves generadas y actualizarla en `.env`.
+Copia la clave generada y asígnala a `JWT_SECRET` en tu archivo `.env`.
 
-### 6. Crear Usuario Inicial
+### 4. Verificar conexión y configuración inicial
 
-Ejecutar en SQL Server:
-
-```sql
-USE InventarioDB;
-
--- Insertar roles
-INSERT INTO RolUsuario (NombreRol) VALUES 
-('Administrador'), 
-('Supervisor'), 
-('Consultor');
-
--- Crear usuario administrador
--- Contraseña: admin123
-INSERT INTO Usuario (NombreUsuario, Clave, IdRol, Estado)
-VALUES ('admin', '$2a$10$rOzJQjKvXGKvXGKvXGKvXeN7vXGKvXGKvXGKvXGKvXGKvXGKvXGKv', 1, 1);
+```bash
+node test-connection.js
+npm run setup
 ```
 
-### 7. Iniciar Servidor
+> [!IMPORTANT]
+> No utilices contraseñas por defecto ni credenciales de ejemplo en entornos reales. Crea el usuario administrador inicial desde el flujo de configuración o insertando un hash `bcrypt` generado de forma segura.
 
-**Modo producción:**
+### 5. Iniciar el servidor
+
 ```bash
+# Desarrollo (con nodemon)
+npm run dev
+
+# Producción
 npm start
 ```
 
-**Modo desarrollo:**
-```bash
-npm run dev
-```
-
-El servidor estará disponible en `http://localhost:3000`
+La aplicación quedará disponible en `http://localhost:3000`.
 
 ---
 
-## Configuración
+## Variables de Entorno
 
-### Variables de Entorno (.env)
+Usa `.env.example` como referencia y define tus propias credenciales en `.env`:
 
-```bash
+```env
 # Servidor
 PORT=3000
 NODE_ENV=development
 
-# Base de Datos
+# Base de Datos SQL Server
 DB_SERVER=localhost
 DB_DATABASE=InventarioDB
-DB_USER=sa
-DB_PASSWORD=tu_password
+DB_USER=<TU_USUARIO_SQL>
+DB_PASSWORD=<TU_CONTRASENA_SEGURA>
 DB_ENCRYPT=false
 DB_TRUST_SERVER_CERTIFICATE=true
 
-# Autenticación
-JWT_SECRET=[GENERAR_CON_generate-secret.js]
+# JWT (generar con: node generate-secret.js)
+JWT_SECRET=<CLAVE_ALEATORIA_SEGURA>
 
-# CORS
+# CORS (en producción, indicar el dominio exacto, ej. https://inventario.tu-dominio.com)
 CORS_ORIGIN=*
 
 # Rate Limiting
@@ -219,402 +124,124 @@ RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
 
-**IMPORTANTE:** Para producción:
-- Cambiar `NODE_ENV` a `production`
-- Generar `JWT_SECRET` único y seguro
-- Configurar `CORS_ORIGIN` con el dominio real
-- Usar contraseñas seguras para la base de datos
-
-Ver `ENV_CONFIG.md` para guía completa de configuración.
+> [!CAUTION]
+> Nunca publiques archivos `.env`, contraseñas, cadenas de conexión reales ni claves `JWT_SECRET` en el código fuente, documentación o commits.
 
 ---
 
 ## Estructura del Proyecto
 
-```
+```text
 InventarioWeb/
 ├── config/
-│   └── database.js              # Conexión SQL Server
+│   └── database.js              # Pool de conexiones a SQL Server
 ├── middleware/
-│   └── security.js              # Middlewares de seguridad
+│   └── security.js              # JWT, RBAC, rate limiting, sanitización y logging
 ├── routes/
-│   ├── auth.js                  # Autenticación JWT
-│   ├── bienes.js                # CRUD Bienes
-│   ├── responsables.js          # CRUD Responsables
+│   ├── auth.js                  # Login y verificación de token
+│   ├── bienes.js                # CRUD de bienes
+│   ├── responsables.js          # CRUD de responsables
 │   ├── catalogos.js             # Gestión de catálogos
 │   ├── movimientos.js           # Registro de movimientos
-│   ├── dashboard.js             # Estadísticas
-│   ├── auditoria.js             # Auditoría
-│   └── usuarios.js              # Gestión de usuarios
+│   ├── dashboard.js             # Estadísticas del inventario
+│   ├── auditoria.js             # Auditoría del sistema
+│   └── usuarios.js              # Gestión de usuarios y roles
 ├── public/
-│   ├── css/
-│   │   └── styles.css           # Estilos globales
-│   ├── js/
-│   │   ├── app.js               # Controlador principal
-│   │   ├── api.js               # Cliente API
-│   │   ├── auth.js              # Autenticación
-│   │   ├── db.js                # IndexedDB
-│   │   ├── sync.js              # Sincronización
-│   │   ├── permissions.js       # Control de permisos
-│   │   ├── form-validator.js    # Validación de formularios
-│   │   ├── qr-generator.js      # Generación de QR
-│   │   └── excel-exporter.js    # Exportación Excel
-│   ├── index.html               # Single Page Application
-│   ├── manifest.json            # PWA Manifest
-│   └── service-worker.js        # Service Worker
+│   ├── assets/                  # Íconos, logos y recursos gráficos
+│   ├── css/                     # Estilos globales, modales, ayuda y skeletons
+│   ├── js/                      # SPA, cliente API, IndexedDB, sync, permisos, QR y Excel
+│   ├── index.html               # Aplicación principal (SPA)
+│   ├── manifest.json            # Manifiesto PWA
+│   └── service-worker.js        # Caché offline y ciclo de vida PWA
 ├── server.js                    # Servidor Express
-├── generate-secret.js           # Generador JWT Secret
-├── package.json                 # Dependencias
-├── .env.example                 # Template variables
-├── .gitignore                   # Archivos ignorados
-├── README.md                    # Este archivo
-├── ENV_CONFIG.md                # Guía configuración
-└── VALIDACION.md                # Guía validación formularios
+├── setup.js                     # Script de configuración inicial
+├── test-connection.js           # Prueba de conexión a SQL Server
+├── generate-secret.js           # Generador de JWT_SECRET
+├── .env.example                 # Plantilla de variables de entorno
+└── package.json
 ```
 
 ---
 
-## Arquitectura
+## Arquitectura y Modo Híbrido
 
-### Patrón de Diseño
-
-El sistema implementa una arquitectura de tres capas:
-
-1. **Capa de Presentación (Frontend)**
-   - SPA (Single Page Application)
-   - Gestión de estado local
-   - Renderizado dinámico de vistas
-
-2. **Capa de Lógica de Negocio (Backend API)**
-   - RESTful API
-   - Autenticación y autorización
-   - Validación de datos
-   - Lógica de negocio
-
-3. **Capa de Datos**
-   - SQL Server (persistencia)
-   - IndexedDB (cache local)
-   - Sincronización bidireccional
-
-### Flujo de Datos
-
-```
-[Cliente] <-> [Service Worker] <-> [API Client] <-> [Express Routes] <-> [SQL Server]
-              [IndexedDB]                                  |
-                                                   [Middleware Security]
+```text
+[Cliente SPA] <-> [Service Worker] <-> [API Client] <-> [Express + Security] <-> [SQL Server]
+                      [IndexedDB]
 ```
 
-### Modo Híbrido
-
-**Online:**
-1. Request enviado al servidor
-2. Respuesta cacheada en IndexedDB
-3. UI actualizada con datos del servidor
-
-**Offline:**
-1. Request guardado en queue local
-2. Datos obtenidos de IndexedDB
-3. UI actualizada con datos locales
-
-**Sincronización:**
-1. Detecta recuperación de conexión
-2. Procesa queue de operaciones pendientes
-3. Resuelve conflictos (last-write-wins)
-4. Actualiza IndexedDB con datos del servidor
+- **Online:** Las peticiones se envían al backend y los datos se almacenan localmente en `IndexedDB` para consulta rápida.
+- **Offline:** Las operaciones pendientes se encolan localmente y la interfaz continúa operando con los datos cacheados.
+- **Sincronización:** Al restablecerse la conexión, `sync.js` procesa la cola pendiente y actualiza el estado local.
 
 ---
 
 ## Seguridad
 
-### Autenticación
-
-- JWT (JSON Web Tokens) con expiración de 8 horas
-- Refresh token automático
-- Logout con invalidación de token
-- Protección contra CSRF
-
-### Autorización
-
-Sistema de control de acceso basado en roles (RBAC):
-
-| Rol | Permisos |
-|-----|----------|
-| **Administrador** | Acceso completo a todos los módulos |
-| **Supervisor** | Crear y editar bienes, responsables, movimientos |
-| **Consultor** | Solo lectura en todos los módulos |
-
-### Protecciones Implementadas
-
-**Backend:**
-- Rate limiting (100 req/min general, 5 login/15min)
-- Sanitización de inputs contra XSS y SQL injection
-- Validación de tipos de datos
-- Headers de seguridad
-- Logging de operaciones críticas
-
-**Frontend:**
-- Validación en tiempo real de formularios
-- Escape de contenido HTML
-- Token almacenado en sessionStorage
-- Timeout de sesión
-
-### Buenas Prácticas
-
-- Contraseñas hasheadas con bcrypt (cost factor 10)
-- JWT_SECRET aleatorio de 128+ caracteres
-- Variables sensibles en .env (no versionado)
-- HTTPS recomendado para producción
-- Auditoría de todas las operaciones
+- **Autenticación:** Tokens JWT con expiración de 8 horas (`Authorization: Bearer <token>`), almacenados en `sessionStorage` en el cliente.
+- **Contraseñas:** Hasheadas con `bcryptjs` (cost factor `10`). Los campos de contraseña no son alterados por el middleware de sanitización.
+- **Autorización (RBAC):**
+  - **Administrador:** Acceso total (incluye usuarios y auditoría).
+  - **Supervisor:** Gestión operativa de bienes, responsables y movimientos.
+  - **Consultor:** Solo lectura.
+- **Protección de API:**
+  - Consultas SQL parametrizadas mediante `mssql`.
+  - Rate limiting por IP (más estricto en `/api/auth` y en `NODE_ENV=production`).
+  - Sanitización de entradas en `body`, `query` y `params`, y validación de `Content-Type`.
+  - CORS restringido en producción cuando `NODE_ENV=production` requiere `CORS_ORIGIN` explícito.
 
 ---
 
-## API Reference
+## Endpoints Principales (API)
 
-### Autenticación
-
-**POST** `/api/auth/login`
-```json
-Request:
-{
-  "nombreUsuario": "string",
-  "clave": "string"
-}
-
-Response:
-{
-  "token": "string",
-  "usuario": {
-    "idUsuario": "number",
-    "nombreUsuario": "string",
-    "rol": "string",
-    "nombreCompleto": "string"
-  }
-}
-```
-
-**GET** `/api/auth/verify`
-```
-Headers: Authorization: Bearer [token]
-Response: { "valid": true, "usuario": {...} }
-```
-
-### Bienes
-
-**GET** `/api/bienes`
-- Query params: `estado`, `area`, `categoria`, `busqueda`
-- Requiere: Autenticación
-- Permisos: Todos
-
-**POST** `/api/bienes`
-- Requiere: Autenticación
-- Permisos: Administrador, Supervisor
-
-**PUT** `/api/bienes/:id`
-- Requiere: Autenticación
-- Permisos: Administrador, Supervisor
-
-**DELETE** `/api/bienes/:id`
-- Requiere: Autenticación
-- Permisos: Administrador
-
-### Catálogos
-
-**GET** `/api/catalogos/all`
-- Retorna todos los catálogos (estados, tipos, áreas, etc.)
-- Requiere: Autenticación
-- Permisos: Todos
-
-**POST/PUT/DELETE** `/api/catalogos/*`
-- Requiere: Autenticación
-- Permisos: Solo Administrador
-
-### Dashboard
-
-**GET** `/api/dashboard/stats`
-- Estadísticas generales del inventario
-- Requiere: Autenticación
-- Permisos: Todos
-
-Ver documentación completa de API en el código fuente de cada ruta.
+| Módulo | Ruta base | Acceso |
+| :--- | :--- | :--- |
+| Autenticación | `/api/auth/login`, `/api/auth/verify` | Público / Token |
+| Bienes | `/api/bienes` | Autenticado (escritura: Admin/Supervisor; borrado: Admin) |
+| Responsables | `/api/responsables` | Autenticado |
+| Movimientos | `/api/movimientos` | Autenticado |
+| Catálogos | `/api/catalogos` | Autenticado (escritura: Admin) |
+| Dashboard | `/api/dashboard` | Autenticado |
+| Usuarios | `/api/usuarios` | Solo Administrador |
+| Auditoría | `/api/auditoria` | Solo Administrador |
 
 ---
 
-## Deployment
+## Despliegue en Producción
 
-### Preparación para Producción
-
-**1. Configurar Variables de Entorno**
-```bash
-NODE_ENV=production
-JWT_SECRET=[clave_aleatoria_segura]
-CORS_ORIGIN=https://tu-dominio.com
-```
-
-**2. Instalar Dependencias de Producción**
-```bash
-npm install --production
-```
-
-**3. Configurar HTTPS**
-- Obtener certificado SSL (Let's Encrypt recomendado)
-- Configurar reverse proxy (nginx)
-
-**4. Configurar Proceso Manager**
-```bash
-npm install -g pm2
-pm2 start server.js --name inventario
-pm2 startup
-pm2 save
-```
-
-### Deployment con Docker (Opcional)
-
-Ver `Dockerfile` para instrucciones de contenedorización.
-
-### Deployment en Cloud
-
-**Azure:**
-- Azure App Service
-- Azure SQL Database
-- Azure CDN para assets estáticos
-
-**AWS:**
-- EC2 para aplicación
-- RDS SQL Server
-- CloudFront para CDN
-
-### Checklist Pre-Deploy
-
-- [ ] JWT_SECRET configurado y seguro
-- [ ] NODE_ENV=production
-- [ ] CORS_ORIGIN configurado
-- [ ] Base de datos respaldada
-- [ ] Usuario administrador creado
-- [ ] HTTPS habilitado
-- [ ] Firewall configurado
-- [ ] Logging configurado
-- [ ] Backups automáticos
-- [ ] Monitoreo configurado
+1. Configura `NODE_ENV=production`, un `JWT_SECRET` único, credenciales de SQL Server dedicadas (con mínimos privilegios) y `CORS_ORIGIN` con el dominio real.
+2. Instala únicamente dependencias de producción:
+   ```bash
+   npm install --omit=dev
+   ```
+3. Coloca la aplicación detrás de un proxy inverso con **HTTPS** (por ejemplo, Nginx o IIS con certificado SSL).
+4. Ejecuta el proceso con un gestor como `pm2`:
+   ```bash
+   pm2 start server.js --name inventario
+   pm2 save
+   ```
 
 ---
 
 ## Solución de Problemas
 
-### Error: Cannot connect to SQL Server
-
-**Síntomas:** Error de conexión al iniciar el servidor
-
-**Soluciones:**
-1. Verificar que SQL Server esté corriendo
-2. Verificar credenciales en `.env`
-3. Verificar firewall: puerto 1433
-4. Verificar que TCP/IP esté habilitado en SQL Server Configuration Manager
-
-### Error: Invalid token / Token expirado
-
-**Síntomas:** Usuario es deslogueado inesperadamente
-
-**Soluciones:**
-1. Verificar que JWT_SECRET sea consistente
-2. Tokens expiran en 8 horas (comportamiento esperado)
-3. Limpiar sessionStorage del navegador
-
-### Service Worker no se actualiza
-
-**Síntomas:** Cambios no se reflejan en la app
-
-**Soluciones:**
-1. Incrementar versión en `service-worker.js`
-2. Ctrl+Shift+R para recarga forzada
-3. Application > Service Workers > Unregister
-
-### Sincronización offline no funciona
-
-**Síntomas:** Cambios offline no se sincronizan
-
-**Soluciones:**
-1. Verificar consola de errores del navegador
-2. Verificar que IndexedDB esté disponible
-3. Limpiar IndexedDB y recargar
-
-### Error 403: Forbidden
-
-**Síntomas:** Usuario no puede acceder a módulos
-
-**Soluciones:**
-1. Verificar rol del usuario en la base de datos
-2. Verificar matriz de permisos en `permissions.js`
-3. Verificar token válido
+- **Error de conexión a SQL Server:** Verifica que el servicio esté activo, que el puerto `1433` esté abierto y que TCP/IP esté habilitado (consulta [GUIA_TCPIP.md](GUIA_TCPIP.md)). Ejecuta `node test-connection.js` para diagnosticar.
+- **Sesión expirada / Token inválido:** Los JWT expiran a las 8 horas. Verifica que `JWT_SECRET` no haya cambiado entre reinicios.
+- **Cambios en frontend no visibles:** Incrementa `CACHE_NAME` en `public/service-worker.js` o recarga con `Ctrl + Shift + R`.
 
 ---
 
-## Mantenimiento
+## Documentación Adicional
 
-### Backups
-
-**Base de Datos:**
-```sql
-BACKUP DATABASE InventarioDB
-TO DISK = 'C:\Backups\InventarioDB.bak'
-WITH FORMAT;
-```
-
-**Archivos:**
-Respaldar directorio completo excepto `node_modules`
-
-### Actualizaciones
-
-**Dependencias:**
-```bash
-npm outdated
-npm update
-```
-
-**Seguridad:**
-```bash
-npm audit
-npm audit fix
-```
-
-### Logs
-
-Los logs se generan en la consola del servidor. Para producción, configurar:
-- Winston para logging estructurado
-- Rotación de logs diaria
-- Envío a servicio de monitoreo
-
----
-
-## Soporte Técnico
-
-Para soporte técnico, reportes de bugs o solicitudes de funcionalidades:
-
-- **Documentación:** Consultar archivos .md en el proyecto
-- **Issues:** Reportar en el sistema de gestión de proyectos
-- **Contacto:** Administrador del sistema
+- [INSTALACION.md](INSTALACION.md) — Guía detallada de instalación
+- [ENV_CONFIG.md](ENV_CONFIG.md) — Configuración de variables de entorno
+- [GUIA_TCPIP.md](GUIA_TCPIP.md) — Habilitar TCP/IP en SQL Server
+- [MANUAL_USUARIO.md](MANUAL_USUARIO.md) — Manual de usuario
+- [VALIDACION.md](VALIDACION.md) — Reglas de validación de formularios
+- [CHANGELOG.md](CHANGELOG.md) — Historial de cambios
 
 ---
 
 ## Licencia
 
-Este sistema es de uso exclusivo institucional. Todos los derechos reservados.
-
----
-
-## Changelog
-
-### Versión 1.0.0 (2025)
-- Sistema de inventario base
-- Autenticación y autorización
-- CRUD completo de bienes
-- Dashboard con métricas
-- Exportación Excel/PDF
-- PWA funcional
-- Modo offline/online híbrido
-- Sistema de permisos por roles
-- Validación de formularios
-- Generación de códigos QR
-
----
-
-**Desarrollado para gestión eficiente del inventario institucional.**
+Uso exclusivo institucional. Todos los derechos reservados.
