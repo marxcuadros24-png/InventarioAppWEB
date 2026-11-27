@@ -1,6 +1,6 @@
-// ============================================
+a
 // SCRIPT DE CONFIGURACIÓN INICIAL
-// ============================================
+
 // Este script crea un usuario administrador inicial
 
 const bcrypt = require('bcryptjs');
@@ -29,7 +29,7 @@ async function createAdminUser() {
         const password = 'admin123';
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        console.log('👤 Creando usuario administrador...');
+        console.log(' Creando usuario administrador...');
 
         // Verificar si ya existe el rol de administrador
         const rolResult = await pool.request()
@@ -41,10 +41,10 @@ async function createAdminUser() {
             const newRol = await pool.request()
                 .query("INSERT INTO RolUsuario (NombreRol) OUTPUT INSERTED.IdRol VALUES ('Administrador')");
             idRol = newRol.recordset[0].IdRol;
-            console.log('✅ Rol de Administrador creado');
+            console.log(' Rol de Administrador creado');
         } else {
             idRol = rolResult.recordset[0].IdRol;
-            console.log('ℹ️  Rol de Administrador ya existe');
+            console.log(' Rol de Administrador ya existe');
         }
 
         // Verificar si ya existe el usuario admin
@@ -52,8 +52,8 @@ async function createAdminUser() {
             .query("SELECT IdUsuario FROM Usuario WHERE NombreUsuario = 'admin'");
 
         if (userCheck.recordset.length > 0) {
-            console.log('⚠️  El usuario "admin" ya existe');
-            console.log('ℹ️  Si deseas cambiar la contraseña, elimina el usuario primero');
+            console.log('  El usuario "admin" ya existe');
+            console.log('  Si deseas cambiar la contraseña, elimina el usuario primero');
         } else {
             // Crear usuario administrador
             await pool.request()
@@ -65,21 +65,21 @@ async function createAdminUser() {
                     VALUES (@nombreUsuario, @clave, @idRol, 1)
                 `);
 
-            console.log('✅ Usuario administrador creado exitosamente');
+            console.log(' Usuario administrador creado exitosamente');
             console.log('');
-            console.log('📝 Credenciales de acceso:');
+            console.log(' Credenciales de acceso:');
             console.log('   Usuario: admin');
             console.log('   Contraseña: admin123');
             console.log('');
-            console.log('⚠️  IMPORTANTE: Cambia esta contraseña después del primer inicio de sesión');
+            console.log('  IMPORTANTE: Cambia esta contraseña después del primer inicio de sesión');
         }
 
         await pool.close();
         console.log('');
-        console.log('✅ Configuración completada');
+        console.log(' Configuración completada');
 
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error(' Error:', error.message);
         process.exit(1);
     }
 }

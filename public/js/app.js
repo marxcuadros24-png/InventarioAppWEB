@@ -945,25 +945,25 @@ const views = {
             return `
                 <div class="card catalogos-container">
                     <div class="card-header">
-                        <h2 class="card-title">🔐 Gestión de Usuarios</h2>
+                        <h2 class="card-title">Gestión de Usuarios</h2>
                     </div>
                     
                     <!-- Tabs de navegación -->
                     <div class="catalog-tabs">
                         <button class="catalog-tab active" data-catalog="usuarios" onclick="app.switchUserTab('usuarios')">
-                            👤 Usuarios
+                            Usuarios
                         </button>
                         <button class="catalog-tab" data-catalog="roles" onclick="app.switchUserTab('roles')">
-                            🏷️ Roles de Usuario
+                             Roles de Usuario
                         </button>
                     </div>
 
                     <!-- Panel Usuarios -->
                     <div class="catalog-panel active" id="panel-usuarios">
                         <div class="panel-header">
-                            <h3>👤 Usuarios del Sistema</h3>
+                            <h3> Usuarios del Sistema</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showUserForm('usuario')">
-                                ➕ Nuevo Usuario
+                                Nuevo Usuario
                             </button>
                         </div>
                         <div class="table-container">
@@ -1004,9 +1004,9 @@ const views = {
                     <!-- Panel Roles -->
                     <div class="catalog-panel" id="panel-roles">
                         <div class="panel-header">
-                            <h3>🏷️ Roles de Usuario</h3>
+                            <h3>Roles de Usuario</h3>
                             <button class="btn btn-primary btn-sm" onclick="app.showUserForm('rol')">
-                                ➕ Nuevo Rol
+                                Nuevo Rol
                             </button>
                         </div>
                         <div class="table-container">

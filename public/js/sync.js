@@ -1,6 +1,6 @@
-// ============================================
+// 
 // SYNC - Sincronización Online/Offline
-// ============================================
+// 
 
 class SyncManager {
     constructor() {

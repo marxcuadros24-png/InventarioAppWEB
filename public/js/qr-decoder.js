@@ -1,6 +1,6 @@
-// ============================================
+//  
 // DECODIFICADOR DE QR - Para usar al escanear
-// ============================================
+//          
 
 /**
  * Función para decodificar datos del QR con campos ultra cortos

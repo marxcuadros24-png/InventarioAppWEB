@@ -3,10 +3,8 @@ const router = express.Router();
 const { getConnection, sql } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
-// ========================
-// USUARIOS
-// ========================
 
+// USUARIOS
 // Obtener todos los usuarios
 router.get('/', async (req, res) => {
     try {
@@ -248,9 +246,8 @@ router.delete('/roles/:id', async (req, res) => {
     }
 });
 
-// ========================
-// RESPONSABLES (para vincular a usuarios)
-// ========================
+
+// RESPONSABLES (para vincular a usuarios) 
 
 // Obtener todos los responsables (para dropdown en usuarios)
 router.get('/responsables/all', async (req, res) => {

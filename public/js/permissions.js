@@ -1,6 +1,4 @@
-// ============================================
 // SISTEMA DE PERMISOS - Control de Acceso por Roles
-// ============================================
 
 // Definición de roles
 const ROLES = {

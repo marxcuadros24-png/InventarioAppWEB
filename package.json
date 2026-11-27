@@ -15,14 +15,14 @@
     "sql-server"
   ],
   "author": {
-    "name": "[Tu Nombre Completo]",
-    "email": "[tu.email@institucion.edu]",
-    "url": "[tu_github_o_portfolio]"
+    "name": "Marx Laurof Cuadros Flores",
+    "email": "marxcuadros24@gmail.com",
+    "url": "https://github.com/marxcuadros24-png"
   },
   "contributors": [],
   "repository": {
     "type": "git",
-    "url": "[URL_DE_TU_REPOSITORIO]"
+    "url": "https://github.com/marxcuadros24-png"
   },
   "license": "Propietario",
   "dependencies": {

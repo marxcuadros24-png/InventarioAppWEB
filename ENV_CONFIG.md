@@ -1,8 +1,8 @@
-# ✅ Checklist de Variables de Entorno para Producción
+# Checklist de Variables de Entorno para Producción
 
-## 📋 Variables Críticas a Verificar
+##  Variables Críticas a Verificar
 
-### 1. JWT_SECRET (🔴 MUY IMPORTANTE)
+### 1. JWT_SECRET ( MUY IMPORTANTE)
 
 ```bash
 # Actual (INSEGURO para producción):
@@ -32,7 +32,7 @@ NODE_ENV=development
 NODE_ENV=production
 ```
 
-⚠️ **Cambiar a `production` antes de desplegar** - esto activa:
+**Cambiar a `production` antes de desplegar** - esto activa:
 - Rate limiting más estricto
 - Ocultación de detalles de errores
 - Optimizaciones de rendimiento
@@ -72,7 +72,7 @@ PORT=3000  # O el puerto que prefieras
 
 ---
 
-## 🚀 Pasos para Configurar
+##  Pasos para Configurar
 
 1. **Abre tu archivo `.env`**
 2. **Verifica que tengas TODAS estas variables**
@@ -82,16 +82,16 @@ PORT=3000  # O el puerto que prefieras
 
 ---
 
-## ⚠️ Seguridad
+##  Seguridad
 
-- ✅ El archivo `.env` ya está en `.gitignore` (no se sube a GitHub)
-- ❌ NUNCA compartas tu `JWT_SECRET`
-- ❌ NUNCA pongas passwords reales en `.env.example`
-- ✅ Usa `.env.example` como plantilla pero con valores de ejemplo
+-  El archivo `.env` ya está en `.gitignore` (no se sube a GitHub)
+-  NUNCA compartas tu `JWT_SECRET`
+-  NUNCA pongas passwords reales en `.env.example`
+-  Usa `.env.example` como plantilla pero con valores de ejemplo
 
 ---
 
-## 🔍 Verificar Configuración Actual
+## Verificar Configuración Actual
 
 ```powershell
 # Ver variables actuales (SIN mostrar valores sensibles)
@@ -100,7 +100,7 @@ npm run test-connection
 
 ---
 
-## 📝 Ejemplo Completo para Producción
+##  Ejemplo Completo para Producción
 
 ```bash
 # Servidor
@@ -128,7 +128,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 
 ---
 
-## ✅ Listo para Producción Cuando:
+##   Listo para Producción Cuando:
 
 - [ ] `JWT_SECRET` es único y aleatorio (mínimo 64 caracteres)
 - [ ] `NODE_ENV=production`

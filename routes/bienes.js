@@ -106,8 +106,8 @@ router.get('/:id', async (req, res) => {
 
 // Crear nuevo bien (Solo Admin y Supervisor)
 router.post('/', adminOSupervisor, async (req, res) => {
-    console.log('🔵 POST /api/bienes - Petición recibida');
-    console.log('📦 Body:', JSON.stringify(req.body, null, 2));
+    console.log('POST /api/bienes - Petición recibida');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
 
     try {
         const {

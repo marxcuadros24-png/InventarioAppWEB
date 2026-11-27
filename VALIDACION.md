@@ -200,7 +200,3 @@ const usuarioValidator = validateForm('#user-form', {
 3. **Los mensajes personalizados** sobrescriben los predeterminados
 4. **La validación es automática** una vez configurada
 5. **Prueba la validación** antes de desplegar
-
----
-
-¡Listo! Ahora tus formularios tendrán validación profesional con feedback visual inmediato.

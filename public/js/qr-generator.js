@@ -1,8 +1,8 @@
-// ============================================
+//  
 // QR GENERATOR - Generación de Códigos QR
 // Sistema de Inventario Institucional
 // Usando: qrcode-generator v1.4.4
-// ============================================
+// 
 
 /**
  * Genera un código QR con información completa del bien

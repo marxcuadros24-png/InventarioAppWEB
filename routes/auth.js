@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { getConnection, sql } = require('../config/database');
+const { verificarToken } = require('../middleware/security');
 
 // Login
 router.post('/login', async (req, res) => {
@@ -50,18 +51,11 @@ router.post('/login', async (req, res) => {
         // Intentar bcrypt primero (hash empieza con $2a$, $2b$, etc.)
         if (storedHash.startsWith('$2')) {
             passwordValid = await bcrypt.compare(clave, storedHash);
-            console.log('🔐 Validación bcrypt:', passwordValid);
         }
-        // Si no es bcrypt, intentar SHA-256 (64 caracteres hexadecimales)
+        // Compatibilidad legacy con SHA-256 (64 caracteres hexadecimales)
         else if (storedHash.length === 64 && /^[a-f0-9]+$/i.test(storedHash)) {
             const sha256Hash = crypto.createHash('sha256').update(clave).digest('hex');
             passwordValid = (sha256Hash === storedHash.toLowerCase());
-            console.log('🔐 Validación SHA-256:', passwordValid);
-        }
-        // Fallback a texto plano
-        else if (storedHash === clave) {
-            passwordValid = true;
-            console.log('🔐 Validación texto plano:', passwordValid);
         }
 
         if (!passwordValid) {
@@ -94,23 +88,6 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: 'Error al iniciar sesión' });
     }
 });
-
-// Middleware para verificar token
-const verificarToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
-
-    if (!token) {
-        return res.status(403).json({ error: 'Token no proporcionado' });
-    }
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.usuario = decoded;
-        next();
-    } catch (err) {
-        return res.status(401).json({ error: 'Token inválido' });
-    }
-};
 
 // Verificar token
 router.get('/verify', verificarToken, (req, res) => {

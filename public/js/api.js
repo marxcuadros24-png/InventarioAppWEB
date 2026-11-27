@@ -1,9 +1,7 @@
-// ============================================
-// API CLIENT - Comunicación con Backend
-// Versión 3.0 - Arquitectura CRUD Fluida
-// ============================================
 
-// === CONFIGURACIÓN DE ENTORNO ===
+// API CLIENT - Comunicación con Backend
+
+// CONFIGURACIÓN DE ENTORNO 
 const API_CONFIG = {
     baseUrl: window.location.hostname === 'localhost'
         ? 'http://localhost:3000/api'
@@ -17,7 +15,7 @@ class API {
         this._onSessionExpired = null;
     }
 
-    // === GESTIÓN DE SESIÓN ===
+    // GESTIÓN DE SESIÓN 
 
     get token() {
         return sessionStorage.getItem('token');
@@ -35,7 +33,7 @@ class API {
         this._onSessionExpired = callback;
     }
 
-    // === HEADERS ===
+    //  HEADERS 
 
     getHeaders(isFormData = false) {
         const headers = {};
@@ -52,7 +50,7 @@ class API {
         return headers;
     }
 
-    // === MÉTODO REQUEST ===
+    // MÉTODO REQUEST
 
     async request(endpoint, options = {}) {
         const isFormData = options.body instanceof FormData;
@@ -73,7 +71,7 @@ class API {
             clearTimeout(timeoutId);
 
             if (response.status === 401) {
-                console.warn('⚠️ Sesión expirada o no autorizado');
+                console.warn(' Sesión expirada o no autorizado');
                 this.handleSessionExpired();
                 throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
             }
@@ -115,7 +113,7 @@ class API {
         }
     }
 
-    // === FACTORY DE CRUD ===
+    // FACTORY DE CRUD 
 
     _crud(basePath) {
         const self = this;
@@ -144,9 +142,6 @@ class API {
         return this._crud(`/catalogos/${entity}`);
     }
 
-    // ====================================================
-    // RECURSOS - API FLUIDA (Nuevo estilo: api.marcas.getAll())
-    // ====================================================
 
     // Catálogos
     get marcas() { return this._catalogCrud('marcas'); }
@@ -163,11 +158,6 @@ class API {
     get movimientos() { return this._crud('/movimientos'); }
     get usuarios() { return this._crud('/usuarios'); }
     get auditoria() { return this._crud('/auditoria'); }
-
-    // ====================================================
-    // MÉTODOS ESPECIALES (No siguen patrón CRUD estándar)
-    // ====================================================
-
     // Autenticación
     async login(nombreUsuario, clave) {
         const data = await this.request('/auth/login', {
@@ -245,11 +235,7 @@ class API {
         });
     }
 
-    // ====================================================
-    // RETROCOMPATIBILIDAD (Para no romper código existente)
-    // Estos métodos llaman a la API fluida internamente
-    // TODO: Migrar gradualmente y eliminar
-    // ====================================================
+    
 
     // Bienes
     getBienes = (filtros) => this.bienes.getAll(filtros);

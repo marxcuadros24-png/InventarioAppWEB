@@ -1,12 +1,12 @@
-// ============================================
+
 // MIDDLEWARES DE SEGURIDAD
-// ============================================
+
 
 const jwt = require('jsonwebtoken');
 
-// ========================
+
 // 1. AUTENTICACIÓN - Verificar Token JWT
-// ========================
+
 const verificarToken = (req, res, next) => {
     // Obtener token del header Authorization
     const authHeader = req.headers['authorization'];
@@ -79,9 +79,9 @@ const soloAdmin = verificarRol(ROLES.ADMIN);
 const adminOSupervisor = verificarRol(ROLES.ADMIN, ROLES.SUPERVISOR);
 const todosLosRoles = verificarRol(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CONSULTOR);
 
-// ========================
-// 3. RATE LIMITING - Prevenir ataques
-// ========================
+
+// RATE LIMITING - Prevenir ataques
+
 
 // Almacén simple en memoria para rate limiting
 const requestCounts = new Map();
@@ -93,7 +93,7 @@ const rateLimiter = (options = {}) => {
         message = 'Demasiadas solicitudes. Por favor, espere un momento.'
     } = options;
 
-    // Limpiar entradas viejas cada minuto
+    // Limpiar entradas viejas cada minuto sin bloquear el cierre del proceso
     setInterval(() => {
         const now = Date.now();
         for (const [key, data] of requestCounts.entries()) {
@@ -101,7 +101,7 @@ const rateLimiter = (options = {}) => {
                 requestCounts.delete(key);
             }
         }
-    }, windowMs);
+    }, windowMs).unref();
 
     return (req, res, next) => {
         const ip = req.ip || req.connection.remoteAddress;
@@ -171,6 +171,9 @@ const sanitizar = (req, res, next) => {
             .trim();
     };
 
+    // Campos de contraseña que no deben alterarse (trim / reemplazo de caracteres)
+    const PASSWORD_KEYS = new Set(['clave', 'password', 'newPassword', 'currentPassword']);
+
     // Función recursiva para sanitizar objetos
     const sanitizarObjeto = (obj) => {
         if (obj === null || obj === undefined) return obj;
@@ -186,7 +189,12 @@ const sanitizar = (req, res, next) => {
         if (typeof obj === 'object') {
             const sanitizado = {};
             for (const [key, value] of Object.entries(obj)) {
-                sanitizado[limpiarString(key)] = sanitizarObjeto(value);
+                const cleanKey = limpiarString(key);
+                if (PASSWORD_KEYS.has(cleanKey) && typeof value === 'string') {
+                    sanitizado[cleanKey] = value;
+                } else {
+                    sanitizado[cleanKey] = sanitizarObjeto(value);
+                }
             }
             return sanitizado;
         }

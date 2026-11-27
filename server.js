@@ -22,9 +22,10 @@ const PORT = process.env.PORT || 3000;
 // MIDDLEWARES GLOBALES
 // ========================
 
-// CORS configurado
+// CORS configurado (en producción requiere CORS_ORIGIN explícito si se permiten orígenes externos)
+const corsOrigin = process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : '*');
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -71,7 +72,6 @@ app.use('/api/bienes', verificarToken, logSecurity, bienesRoutes);
 app.use('/api/responsables', verificarToken, logSecurity, responsablesRoutes);
 app.use('/api/movimientos', verificarToken, logSecurity, movimientosRoutes);
 app.use('/api/dashboard', verificarToken, dashboardRoutes);
-app.use('/api/reportes', verificarToken, logSecurity);
 
 // Rutas que requieren autenticación pero con control granular interno
 app.use('/api/catalogos', verificarToken, logSecurity, catalogosRoutes);
@@ -91,7 +91,7 @@ app.get('/', (req, res) => {
 // MANEJO DE ERRORES
 // ========================
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err.message);
+    console.error('Error:', err.message);
     console.error(err.stack);
 
     // No revelar detalles del error en producción
@@ -107,8 +107,8 @@ app.use((err, req, res, next) => {
 // INICIAR SERVIDOR
 // ========================
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-    console.log(`📊 API disponible en http://localhost:${PORT}/api`);
-    console.log(`🔐 Seguridad: Autenticación JWT + Rate Limiting + Sanitización`);
-    console.log(`📝 Modo: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`API disponible en http://localhost:${PORT}/api`);
+    console.log(`Seguridad: Autenticación JWT + Rate Limiting + Sanitización`);
+    console.log(`Modo: ${process.env.NODE_ENV || 'development'}`);
 });

@@ -2,22 +2,22 @@
 
 ## Autor Principal
 
-**Desarrollador:** [Tu Nombre Completo]  
-**Rol:** Estudiante de Ingeniería/Sistemas  
-**Institución:** [Nombre de la Institución]  
+**Desarrollador:** Marx Laurof Cuadros Flores 
+**Rol:** Estudiante de Arquitectura de Plataformas y Servicios de Tecnologías de Información  
+**Institución:** IESTP "Cesar Augusto Guardia Mayorga" 
 **Ciclo Académico:** 4to Ciclo  
-**Año:** 2024
+**Año:** 2025
 
 **Contacto:**
-- Email: [tu.email@institucion.edu]
-- GitHub: [tu_usuario]
-- LinkedIn: [tu_perfil]
+- Email: marxcuadros24@gmail.com
+- GitHub: https://github.com/marxcuadros24-png
+- LinkedIn: https://www.linkedin.com/in/marx-laurof-cuadros-flores-893917388/
 
 ---
 
 ## Descripción del Proyecto
 
-Este Sistema de Inventario Institucional fue desarrollado como proyecto académico durante el 4to ciclo de la carrera de [Ingeniería de Sistemas/Computación] en [Nombre de la Institución].
+Este Sistema de Inventario Institucional fue desarrollado como proyecto académico durante el 4to ciclo de la carrera de Arquitectura de Plataformas y Servicios de Tecnologías de Información en IESTP "Cesar Augusto Guardia Mayorga".
 
 El proyecto abarca el desarrollo completo de una aplicación web profesional con arquitectura de tres capas, implementando tecnologías modernas y mejores prácticas de la industria.
 
@@ -137,12 +137,6 @@ El proyecto abarca el desarrollo completo de una aplicación web profesional con
 
 ## Agradecimientos
 
-**Institución**
-- [Nombre de la Institución] por el apoyo y recursos
-
-**Docentes**
-- [Nombre del Profesor/Asesor] - Asesoría técnica
-- [Otros profesores relevantes]
 
 **Recursos**
 - Documentación oficial de las tecnologías utilizadas
@@ -153,7 +147,7 @@ El proyecto abarca el desarrollo completo de una aplicación web profesional con
 
 ## Licencia y Derechos
 
-Este proyecto fue desarrollado como trabajo académico para [Nombre de la Institución].
+Este proyecto fue desarrollado como trabajo académico para IESTP "Cesar Augusto Guardia Mayorga".
 
 **Derechos de Autor:**
 - El código fuente es propiedad del desarrollador
@@ -178,15 +172,15 @@ Este proyecto forma parte del portafolio profesional del desarrollador y demuest
 - UI/UX Design
 - Documentación Técnica
 
-Para ver más proyectos: [URL de tu portafolio]
+Para ver más proyectos: github.com/marxcuadros24-png
 
 ---
 
 ## Versión
 
 **Versión del Proyecto:** 1.0.0  
-**Fecha de Finalización:** Diciembre 2024  
-**Última Actualización:** 2024-12-09
+**Fecha de Finalización:** 2025-12-09
+**Última Actualización:** 2025-12-09
 
 ---
 
@@ -195,11 +189,11 @@ Para ver más proyectos: [URL de tu portafolio]
 Si deseas referenciar este proyecto, usa el siguiente formato:
 
 ```
-[Tu Nombre]. (2024). Sistema de Inventario Institucional [Software]. 
-[Nombre de la Institución]. Disponible en: [URL si aplica]
+[Marx Laurof Cuadros Flores]. (2025). Sistema de Inventario Institucional [Software]. 
+[IESTP "Cesar Augusto Guardia Mayorga".]. Disponible en: [github.com/marxcuadros24-png]
 ```
 
 ---
 
-**Desarrollado con dedicación por [Tu Nombre]**  
-**4to Ciclo - [Nombre de la Institución] - 2024**
+**Desarrollado con dedicación por Marx Laurof Cuadros Flores**  
+**4to Ciclo - IESTP "Cesar Augusto Guardia Mayorga" - 2025**

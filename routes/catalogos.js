@@ -3,9 +3,9 @@ const router = express.Router();
 const { getConnection, sql } = require('../config/database');
 const { soloAdmin } = require('../middleware/security');
 
-// ========================
+// 
 // OBTENER TODOS LOS CATÁLOGOS
-// ========================
+// 
 router.get('/all', async (req, res) => {
     try {
         const pool = await getConnection();

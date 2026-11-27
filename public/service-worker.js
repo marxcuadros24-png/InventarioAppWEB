@@ -1,18 +1,28 @@
-// ============================================
+// 
 // SERVICE WORKER - PWA Offline Support
-// ============================================
+// 
 
-const CACHE_NAME = 'inventario-v29';
+const CACHE_NAME = 'inventario-v30';
 const urlsToCache = [
     '/',
     '/index.html',
     '/css/styles.css',
     '/css/modal-styles.css',
+    '/css/about.css',
+    '/css/help-manual.css',
+    '/css/loading-skeletons.css',
     '/js/app.js',
     '/js/api.js',
     '/js/db.js',
     '/js/sync.js',
     '/js/auth.js',
+    '/js/permissions.js',
+    '/js/form-validator.js',
+    '/js/loading-helper.js',
+    '/js/modal-helper.js',
+    '/js/excel-exporter.js',
+    '/js/qr-generator.js',
+    '/js/qr-decoder.js',
     '/manifest.json'
 ];
 
@@ -42,7 +52,7 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim())
     );
 });
 
